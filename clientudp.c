@@ -133,7 +133,7 @@ char *argv[];
 		 */
       memset (&hints, 0, sizeof (hints));
       hints.ai_family = AF_INET;
- 	 /* esta función es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta*/
+ 	 /* esta funciï¿½n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta*/
     errcode = getaddrinfo (argv[1], NULL, &hints, &res); 
     if (errcode != 0){
 			/* Name was not found.  Return a

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = 
+CFLAGS =
 #Descomentar la siguiente linea para olivo
 #LIBS = -lsocket -lnsl
 #Descomentar la siguiente linea para linux
