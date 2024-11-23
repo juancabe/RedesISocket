@@ -6,6 +6,7 @@
  *
  */
 #include <sys/types.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/errno.h>
 #include <netinet/in.h>
@@ -23,6 +24,7 @@
 #define BUFFERSIZE 1024         /* maximum size of packets to be received */
 #define TAM_BUFFER 10
 #define MAXHOST 128
+#define LOG_FILENAME "server_log.txt"
 
 extern int errno;
 
@@ -354,72 +356,91 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     errout(hostname);
   }
 
-  /* Go into a loop, receiving requests from the remote
-   * client.  After the client has sent the last request,
-   * it will do a shutdown for sending, which will cause
-   * an end-of-file condition to appear on this end of the
-   * connection.  After all of the client's requests have
-   * been received, the next recv call will return zero
-   * bytes, signalling an end-of-file condition.  This is
-   * how the server will know that no more requests will
-   * follow, and the loop will be exited.
-   */
-  while (len = recv(s, buf, TAM_BUFFER, 0))
-  {
-    if (len == -1)
-      errout(hostname); /* error from recv */
-                        /* The reason this while loop exists is that there
-                         * is a remote possibility of the above recv returning
-                         * less than TAM_BUFFER bytes.  This is because a recv returns
-                         * as soon as there is some data, and will not wait for
-                         * all of the requested data to arrive.  Since TAM_BUFFER bytes
-                         * is relatively small compared to the allowed TCP
-                         * packet sizes, a partial receive is unlikely.  If
-                         * this example had used 2048 bytes requests instead,
-                         * a partial receive would be far more likely.
-                         * This loop will keep receiving until all TAM_BUFFER bytes
-                         * have been received, thus guaranteeing that the
-                         * next recv at the top of the loop will start at
-                         * the begining of the next request.
-                         */
-    while (len < TAM_BUFFER)
+  if (1)
+  { // Receive all data the client wants
+    // to send until he closes his SENDING connection
+    // (he can still receive our response)
+    const int step_len = 1024;
+    int received_len, actual_len = 0;
+    char *buffer = malloc(step_len);
+    while (received_len = recv(s, buffer + actual_len, step_len, 0)) // If recv == 0 -> loop stops
     {
-      len1 = recv(s, &buf[len], TAM_BUFFER - len, 0);
-      if (len1 == -1)
+      if (received_len < 0)
         errout(hostname);
-      len += len1;
-    }
-    /* Increment the request count. */
-    reqcnt++;
-    /* This sleep simulates the processing of the
-     * request that a real server might do.
-     */
-    sleep(1);
-    /* Send a response back to the client. */
-    if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER)
-      errout(hostname);
-  }
 
-  /* The loop has terminated, because there are no
-   * more requests to be serviced.  As mentioned above,
-   * this close will block until all of the sent replies
-   * have been received by the remote host.  The reason
-   * for lingering on the close is so that the server will
-   * have a better idea of when the remote has picked up
-   * all of the data.  This will allow the start and finish
-   * times printed in the log file to reflect more accurately
-   * the length of time this connection was used.
-   */
+      actual_len += received_len;
+      char *tempPtr = buffer;
+      buffer = realloc(buffer, actual_len + step_len);
+      if (buffer == NULL)
+      {
+        errout(hostname);
+        free(tempPtr);
+      }
+    }
+
+    /*
+    EXAMPLE OF EXECUTION OF THE LOOP
+    Receiving 2*step_len data
+  recv()
+      1. actual_len = 0, reading step_len bytes
+        a) actual_len -> actual_len'
+        b) buffer alloc enough for next step_len bytes
+        (lets suppose received_len == 1024)
+      2. actual_len = 1024, reading step_len bytes
+        a) actual_len -> actual_len'
+        b) buffer alloc enough for next step_len bytes
+      3. recv returns 0, end of loop
+    */
+
+    // Now we must parse client's message and respond to it
+
+    // TODO
+
+    FILE *outLog = fopen(LOG_FILENAME, "a");
+    fprintf(outLog, "SERVER RECEIVED CONNECTION\n");
+    fprintf(outLog, "Client message:\n");
+    fprintf(outLog, "\n%s\n", buffer);
+    free(buffer);
+    fclose(outLog);
+  }
+  else
+  { // Example's approach
+    while (len = recv(s, buf, TAM_BUFFER, 0))
+    {
+      if (len == -1)
+        errout(hostname); /* error from recv */
+
+      /* The reason this while loop exists is that there
+       * is a remote possibility of the above recv returning
+       * less than TAM_BUFFER bytes.  This is because a recv returns
+       * as soon as there is some data, and will not wait for
+       * all of the requested data to arrive.  Since TAM_BUFFER bytes
+       * is relatively small compared to the allowed TCP
+       * packet sizes, a partial receive is unlikely.  If
+       * this example had used 2048 bytes requests instead,
+       * a partial receive would be far more likely.
+       * This loop will keep receiving until all TAM_BUFFER bytes
+       * have been received, thus guaranteeing that the
+       * next recv at the top of the loop will start at
+       * the begining of the next request.
+       */
+      while (len < TAM_BUFFER)
+      {
+        len1 = recv(s, &buf[len], TAM_BUFFER - len, 0);
+        if (len1 == -1)
+          errout(hostname);
+        len += len1;
+      }
+      /* Increment the request count. */
+      reqcnt++;
+      /* Send a response back to the client. */
+      if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER)
+        errout(hostname);
+    }
+  }
   close(s);
 
-  /* Log a finishing message. */
   time(&timevar);
-  /* The port number must be converted first to host byte
-   * order before printing.  On most hosts, this is not
-   * necessary, but the ntohs() call is included here so
-   * that this program could easily be ported to a host
-   * that does require it.
-   */
   printf("Completed %s port %u, %d requests, at %s\n",
          hostname, ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
 }
