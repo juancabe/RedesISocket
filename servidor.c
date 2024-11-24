@@ -357,13 +357,14 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   }
 
   if (1)
-  { // Receive all data the client wants
+  {
+    // Receive all data the client wants
     // to send until he closes his SENDING connection
     // (he can still receive our response)
     const int step_len = 1024;
     int received_len, actual_len = 0;
     char *buffer = malloc(step_len);
-    while (received_len = recv(s, buffer + actual_len, step_len, 0)) // If recv == 0 -> loop stops
+    while (received_len = recv(s, buffer + actual_len, step_len, 0))
     {
       if (received_len < 0)
         errout(hostname);
