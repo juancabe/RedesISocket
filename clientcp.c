@@ -134,7 +134,7 @@ char *argv[];
 	if (1)
 	{
 		char helloWorld[13] = "HELLO WORLD!";
-		if (send(s, helloWorld, 13, 0) != TAM_BUFFER)
+		if (send(s, helloWorld, 13, 0) != 13)
 		{
 			fprintf(stderr, "%s: Connection aborted on error ", argv[0]);
 			fprintf(stderr, "on send number %d\n", i);

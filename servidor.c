@@ -18,6 +18,7 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #define PUERTO 17278
 #define ADDRNOTFOUND 0xffffffff /* return address for unfound host */
@@ -39,7 +40,7 @@ extern int errno;
  */
 
 void serverTCP(int s, struct sockaddr_in peeraddr_in);
-void serverUDP(int s, char *buffer, struct sockaddr_in clientaddr_in);
+void serverUDP(int s, struct sockaddr_in clientaddr_in);
 void errout(char *); /* declare error out routine */
 
 int FIN = 0; /* Para el cierre ordenado */
@@ -264,19 +265,8 @@ char *argv[];
            * room is left at the end of the buffer
            * for a null character.
            */
-          cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
-                        (struct sockaddr *)&clientaddr_in, &addrlen);
-          if (cc == -1)
-          {
-            perror(argv[0]);
-            printf("%s: recvfrom error\n", argv[0]);
-            exit(1);
-          }
-          /* Make sure the message received is
-           * null terminated.
-           */
-          buffer[cc] = '\0';
-          serverUDP(s_UDP, buffer, clientaddr_in);
+
+          serverUDP(s_UDP, clientaddr_in);
         }
       }
     } /* Fin del bucle infinito de atenci�n a clientes */
@@ -398,7 +388,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     // TODO
 
     FILE *outLog = fopen(LOG_FILENAME, "a");
-    fprintf(outLog, "SERVER RECEIVED CONNECTION\n");
+    fprintf(outLog, "[TCP SERVER] RECEIVED\n");
     fprintf(outLog, "Client message:\n");
     fprintf(outLog, "\n%s\n", buffer);
     free(buffer);
@@ -465,7 +455,7 @@ void errout(char *hostname)
  *	logging information to stdout.
  *
  */
-void serverUDP(int s, char *buffer, struct sockaddr_in clientaddr_in)
+void serverUDP(int s, struct sockaddr_in clientaddr_in)
 {
   struct in_addr reqaddr; /* for requested host's address */
   struct hostent *hp;     /* pointer to host info for requested host */
@@ -479,28 +469,53 @@ void serverUDP(int s, char *buffer, struct sockaddr_in clientaddr_in)
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
-  /* Treat the message as a string containing a hostname. */
-  /* Esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
-  errcode = getaddrinfo(buffer, NULL, &hints, &res);
-  if (errcode != 0)
+
+  if (1)
   {
-    /* Name was not found.  Return a
-     * special value signifying the error. */
-    reqaddr.s_addr = ADDRNOTFOUND;
+    // TODO hacemos la recepción UDP dinámica?
+    const size_t BUF_SIZE = 500;
+    char buffer[BUF_SIZE];
+    ssize_t cc = recvfrom(s, buffer, BUF_SIZE, 0,
+                          (struct sockaddr *)&clientaddr_in, &addrlen);
+    if (cc == -1)
+    {
+      perror(s);
+      printf("%s: recvfrom error\n", s);
+      exit(1);
+    }
+    /* Make sure the message received is
+     * null terminated.
+     */
+    buffer[cc] = '\0';
+    FILE *outLog = fopen(LOG_FILENAME, "a+");
+    fprintf(outLog, "[UDP SERVER] RECEIVED\n%s\n", buffer);
+    fclose(outLog);
   }
   else
   {
-    /* Copy address of host into the return buffer. */
-    reqaddr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
-  }
-  freeaddrinfo(res);
+    /* Treat the message as a string containing a hostname. */
+    /* Esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
+    // errcode = getaddrinfo(buffer, NULL, &hints, &res); la comenté yo
+    if (errcode != 0)
+    {
+      /* Name was not found.  Return a
+       * special value signifying the error. */
+      reqaddr.s_addr = ADDRNOTFOUND;
+    }
+    else
+    {
+      /* Copy address of host into the return buffer. */
+      reqaddr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+    }
+    freeaddrinfo(res);
 
-  nc = sendto(s, &reqaddr, sizeof(struct in_addr),
-              0, (struct sockaddr *)&clientaddr_in, addrlen);
-  if (nc == -1)
-  {
-    perror("serverUDP");
-    printf("%s: sendto error\n", "serverUDP");
-    return;
+    nc = sendto(s, &reqaddr, sizeof(struct in_addr),
+                0, (struct sockaddr *)&clientaddr_in, addrlen);
+    if (nc == -1)
+    {
+      perror("serverUDP");
+      printf("%s: sendto error\n", "serverUDP");
+      return;
+    }
   }
 }
