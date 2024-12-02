@@ -1,120 +1,58 @@
-#include <stdbool.h>
-#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <utmp.h>
+#include <pwd.h>
+#include <utmpx.h>
 #include <time.h>
 
-/**
- * @brief Composes a finger request string for a given user.
- *
- * This function takes a username as input and returns a string
- * formatted for a finger request. If username == NULL, will compose finger of every user (-l). The returned string is dynamically
- * allocated and should be freed by the caller.
- *
- * @param username If NULL similar to -l, else will compose for username
- * @return A dynamically allocated string containing the finger request.
- */
-
-char *composeFinger(char *username)
+char *fingerForUser(const char *user)
 {
-  struct passwd *pw;
-  struct utmp *ut;
-  char *result = NULL;
-  size_t size = 0;
-  FILE *memstream = open_memstream(&result, &size);
+  static char result[1024];
+  struct passwd *pwd_entry = NULL;
 
-  if (!memstream)
+  // Consultar /etc/passwd para obtener información básica del usuario
+  pwd_entry = getpwnam(user);
+  if (pwd_entry == NULL)
   {
-    return NULL;
+    snprintf(result, sizeof(result), "Error: Usuario '%s' no encontrado.\n", user);
+    return result;
   }
 
-  setutent(); // Open utmp file
+  // Información básica
+  snprintf(result, sizeof(result),
+           "Login: %s\nName: %s\nDirectory: %s\nShell: %s\n",
+           pwd_entry->pw_name, pwd_entry->pw_gecos,
+           pwd_entry->pw_dir, pwd_entry->pw_shell);
 
-  if (username == NULL)
+  // Consultar información de inicio de sesión actual usando /var/run/utmpx
+  struct utmpx *ut;
+  setutxent(); // Abrir utmpx
+
+  while ((ut = getutxent()) != NULL)
   {
-    // List all users (-l option equivalent)
-    fprintf(memstream, "Login      Name              TTY  Idle  Login Time\n");
-
-    while ((pw = getpwent()) != NULL)
+    if (ut->ut_type == USER_PROCESS && strcmp(ut->ut_user, user) == 0)
     {
-      ut = getutent();
-
-      // Format basic user info
-      fprintf(memstream, "%-9s %-17s", pw->pw_name, pw->pw_gecos);
-
-      // Add TTY and login time if logged in
-      if (ut && strcmp(ut->ut_name, pw->pw_name) == 0)
-      {
-        time_t login_time = ut->ut_time;
-        char *time_str = ctime(&login_time);
-        time_str[strlen(time_str) - 1] = '\0'; // Remove newline
-
-        fprintf(memstream, " %-4s        %s\n",
-                ut->ut_line, time_str);
-      }
-      else
-      {
-        fprintf(memstream, " -           Not logged in\n");
-      }
-    }
-  }
-  else
-  {
-    // Show detailed info for specific user
-    pw = getpwnam(username);
-    if (!pw)
-    {
-      fprintf(memstream, "User %s not found.\n", username);
-    }
-    else
-    {
-      fprintf(memstream, "Login: %-16s\t\tName: %s\n",
-              pw->pw_name, pw->pw_gecos);
-      fprintf(memstream, "Directory: %-24s\tShell: %s\n",
-              pw->pw_dir, pw->pw_shell);
-
-      // Check if user is logged in
-      while ((ut = getutent()) != NULL)
-      {
-        if (strcmp(ut->ut_name, username) == 0)
-        {
-          time_t login_time = ut->ut_time;
-          char *time_str = ctime(&login_time);
-          time_str[strlen(time_str) - 1] = '\0';
-
-          fprintf(memstream, "On since %s on %s\n",
-                  time_str, ut->ut_line);
-          break;
-        }
-      }
-
-      if (!ut)
-      {
-        fprintf(memstream, "Never logged in.\n");
-      }
+      char login_time[32];
+      time_t login_t = ut->ut_tv.tv_sec;
+      strftime(login_time, sizeof(login_time), "%c", localtime(&login_t));
+      snprintf(result + strlen(result), sizeof(result) - strlen(result),
+               "On since: %s on %s\n", login_time, ut->ut_line);
     }
   }
 
-  endutent(); // Close utmp file
-  endpwent(); // Close passwd file
-  fclose(memstream);
+  endutxent(); // Cerrar utmpx
 
   return result;
 }
 
 int main()
 {
-  // Test composeFinger
+  char user[256];
+  printf("Introduce el nombre del usuario: ");
+  scanf("%255s", user);
 
-  // Test for all users
-  char *allUsers = composeFinger(NULL);
-  printf("All users:\n%s\n", allUsers);
-  free(allUsers);
+  char *finger_info = fingerForUser(user);
+  printf("%s", finger_info);
 
-  // Test for specific user
-  char *specificUser = composeFinger("juancalzadabernal");
-  printf("Specific user:\n%s\n", specificUser);
-  free(specificUser);
+  return 0;
 }

@@ -384,7 +384,6 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     */
 
     // Now we must parse client's message and respond to it
-
     // TODO
 
     FILE *outLog = fopen(LOG_FILENAME, "a");
@@ -472,15 +471,15 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
 
   if (1)
   {
-    // TODO hacemos la recepción UDP dinámica?
-    const size_t BUF_SIZE = 500;
-    char buffer[BUF_SIZE];
-    ssize_t cc = recvfrom(s, buffer, BUF_SIZE, 0,
+    // T🍑D🍑 hacemos la recepción UDP dinámica? NO
+
+    char buffer[BUFFERSIZE];
+    ssize_t cc = recvfrom(s, buffer, BUFFERSIZE, 0,
                           (struct sockaddr *)&clientaddr_in, &addrlen);
     if (cc == -1)
     {
-      perror(s);
-      printf("%s: recvfrom error\n", s);
+      perror("[UDP RECEIVE] Error");
+      printf("%d: recvfrom error\n", s);
       exit(1);
     }
     /* Make sure the message received is
