@@ -83,14 +83,33 @@ char *fingerForUser(const char *user)
   return result;
 }
 
+char *allFinger()
+{
+  static char all_fingers[65536]; // Tamaño suficiente para manejar muchos usuarios
+  all_fingers[0] = '\0';          // Inicializar como cadena vacía
+
+  struct passwd *pwd_entry;
+  setpwent(); // Iniciar lectura de /etc/passwd
+
+  // Iterar sobre todos los usuarios
+  while ((pwd_entry = getpwent()) != NULL)
+  {
+    if (pwd_entry->pw_uid >= 1000 || pwd_entry->pw_uid == 0)
+    { // Usuarios regulares y root
+      char *finger_info = fingerForUser(pwd_entry->pw_name);
+      strncat(all_fingers, finger_info, sizeof(all_fingers) - strlen(all_fingers) - 1);
+      strncat(all_fingers, "\n\n", sizeof(all_fingers) - strlen(all_fingers) - 1);
+    }
+  }
+
+  endpwent(); // Finalizar lectura de /etc/passwd
+
+  return all_fingers;
+}
+
 int main()
 {
-  char user[256];
-  printf("Introduce el nombre del usuario: ");
-  scanf("%255s", user);
-
-  char *finger_info = fingerForUser(user);
-  printf("%s", finger_info);
-
+  char *all_users_finger = allFinger();
+  printf("%s", all_users_finger);
   return 0;
 }
