@@ -6,7 +6,40 @@
 #include <time.h>
 #include <sys/stat.h>
 
-char *fingerForUser(const char *user)
+#define BUFFER_SIZE 65536
+
+// Estructura para cargar conexiones activas
+typedef struct
+{
+  char user[32];
+  char line[32];
+  time_t login_time;
+} ActiveUser;
+
+// Cargar información de /var/run/utmpx en memoria
+int loadActiveUsers(ActiveUser *active_users, int max_users)
+{
+  struct utmpx *ut;
+  int count = 0;
+  setutxent();
+
+  while ((ut = getutxent()) != NULL)
+  {
+    if (ut->ut_type == USER_PROCESS && count < max_users)
+    {
+      strncpy(active_users[count].user, ut->ut_user, sizeof(active_users[count].user) - 1);
+      strncpy(active_users[count].line, ut->ut_line, sizeof(active_users[count].line) - 1);
+      active_users[count].login_time = ut->ut_tv.tv_sec;
+      count++;
+    }
+  }
+
+  endutxent();
+  return count;
+}
+
+// Generar finger para un usuario
+char *fingerForUser(const char *user, ActiveUser *active_users, int active_count)
 {
   static char result[4096];
   struct passwd *pwd_entry = NULL;
@@ -31,21 +64,17 @@ char *fingerForUser(const char *user)
            "Login: %s\t\t\tName: %s\nDirectory: %s\tShell: %s\n",
            pwd_entry->pw_name, name, pwd_entry->pw_dir, pwd_entry->pw_shell);
 
-  // Información de inicio de sesión
-  struct utmpx *ut;
-  setutxent();
-  while ((ut = getutxent()) != NULL)
+  // Información de sesiones activas
+  for (int i = 0; i < active_count; i++)
   {
-    if (ut->ut_type == USER_PROCESS && strcmp(ut->ut_user, user) == 0)
+    if (strcmp(active_users[i].user, user) == 0)
     {
       char login_time[32];
-      time_t login_t = ut->ut_tv.tv_sec;
-      strftime(login_time, sizeof(login_time), "%c", localtime(&login_t));
+      strftime(login_time, sizeof(login_time), "%c", localtime(&active_users[i].login_time));
       snprintf(result + strlen(result), sizeof(result) - strlen(result),
-               "On since %s on %s\n", login_time, ut->ut_line);
+               "On since %s on %s\n", login_time, active_users[i].line);
     }
   }
-  endutxent();
 
   // Comprobar correo
   char mail_path[512];
@@ -83,10 +112,14 @@ char *fingerForUser(const char *user)
   return result;
 }
 
+// Generar finger para todos los usuarios
 char *allFinger()
 {
-  static char all_fingers[65536]; // Tamaño suficiente para manejar muchos usuarios
-  all_fingers[0] = '\0';          // Inicializar como cadena vacía
+  static char all_fingers[BUFFER_SIZE];
+  all_fingers[0] = '\0';
+
+  ActiveUser active_users[128];
+  int active_count = loadActiveUsers(active_users, 128);
 
   struct passwd *pwd_entry;
   setpwent(); // Iniciar lectura de /etc/passwd
@@ -96,14 +129,13 @@ char *allFinger()
   {
     if (pwd_entry->pw_uid >= 1000 || pwd_entry->pw_uid == 0)
     { // Usuarios regulares y root
-      char *finger_info = fingerForUser(pwd_entry->pw_name);
+      char *finger_info = fingerForUser(pwd_entry->pw_name, active_users, active_count);
       strncat(all_fingers, finger_info, sizeof(all_fingers) - strlen(all_fingers) - 1);
       strncat(all_fingers, "\n\n", sizeof(all_fingers) - strlen(all_fingers) - 1);
     }
   }
 
   endpwent(); // Finalizar lectura de /etc/passwd
-
   return all_fingers;
 }
 
