@@ -313,8 +313,6 @@ int main(int argc, char *argv[])
 
   stats_finger(finger_result, array_size);
 
-  return 0;
-
   FILE *finger_file = fopen("finger.txt", "w");
   if (finger_file)
   {
