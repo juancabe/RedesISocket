@@ -518,7 +518,7 @@ void stats_finger(char **finger_result, int arr_size)
 int main(int argc, int *argv)
 {
   int array_size = 0;
-  char **finger_result = composeFinger(argc == 2 ? argv[1] : NULL, &array_size);
+  char **finger_result = fingerForActiveUsers(&array_size);
 
   if (finger_result == NULL)
   {
@@ -549,8 +549,6 @@ int main(int argc, int *argv)
     free(finger_result);
     return 1;
   }
-
-  return 0;
 }
 
 int main_old(int argc, char *argv[])
