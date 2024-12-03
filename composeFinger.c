@@ -277,6 +277,29 @@ char **composeFinger(char *user, int *ret_array_size)
   }
 }
 
+void stats_finger(char **finger_result, int arr_size)
+{
+  printf("-- STATS --\n");
+  printf("Raw output size: %d", arr_size * MAX_USER_FINGER_SIZE);
+
+  char *concat_message = malloc(arr_size * MAX_USER_FINGER_SIZE);
+  if (!concat_message)
+  {
+    perror("malloc failed");
+    return;
+  }
+  char *concat_ptr = concat_message;
+  int concat_size = 0;
+  for (int i = 0; i < arr_size; i++)
+  {
+    strcat(concat_ptr, finger_result[i]);
+    concat_ptr += strlen(finger_result[i]);
+    concat_size += strlen(finger_result[i]);
+  }
+  printf("Concatenated output size: %d", concat_size);
+  free(concat_message);
+}
+
 int main(int argc, char *argv[])
 {
   int array_size = 0;
@@ -287,6 +310,10 @@ int main(int argc, char *argv[])
     printf("User not found or an error occurred\n");
     return 1;
   }
+
+  stats_finger(finger_result, array_size);
+
+  return 0;
 
   FILE *finger_file = fopen("finger.txt", "w");
   if (finger_file)
