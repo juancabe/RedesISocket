@@ -9,7 +9,6 @@
 
 #define MAX_USER_FINGER_SIZE 4096
 
-// Estructura para cargar conexiones activas
 typedef struct
 {
   char user[32];
@@ -17,7 +16,6 @@ typedef struct
   time_t login_time;
 } ActiveUser;
 
-// Corrected freeActiveUsers function
 static void freeActiveUsers(ActiveUser **active_users, int count)
 {
   for (int i = 0; i < count; i++)
@@ -26,7 +24,6 @@ static void freeActiveUsers(ActiveUser **active_users, int count)
   }
 }
 
-// Cargar información de /var/run/utmpx en memoria
 static int loadActiveUsers(ActiveUser **active_users, int max_users)
 {
   struct utmpx *ut;
@@ -38,19 +35,20 @@ static int loadActiveUsers(ActiveUser **active_users, int max_users)
     if (ut->ut_type == USER_PROCESS)
     {
       active_users[count] = malloc(sizeof(ActiveUser));
-      // Copy username
-      strncpy(active_users[count]->user,              // to
-              ut->ut_user,                            // from
-              sizeof(active_users[count]->user) - 1); // size
+      if (!active_users[count])
+      {
+        perror("malloc failed");
+        // Free previously allocated memory
+        freeActiveUsers(active_users, count);
+        endutxent();
+        return -1;
+      }
+      strncpy(active_users[count]->user, ut->ut_user, sizeof(active_users[count]->user) - 1);
       active_users[count]->user[sizeof(active_users[count]->user) - 1] = '\0';
 
-      // Copy line
-      strncpy(active_users[count]->line,              // to
-              ut->ut_line,                            // from
-              sizeof(active_users[count]->line) - 1); // size
+      strncpy(active_users[count]->line, ut->ut_line, sizeof(active_users[count]->line) - 1);
       active_users[count]->line[sizeof(active_users[count]->line) - 1] = '\0';
 
-      // Copy login time
       active_users[count]->login_time = ut->ut_tv.tv_sec;
       count++;
     }
@@ -60,25 +58,32 @@ static int loadActiveUsers(ActiveUser **active_users, int max_users)
   return count;
 }
 
-// Generar finger para un usuario
 static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss, int active_count)
 {
   char *result = malloc(MAX_USER_FINGER_SIZE);
+  if (!result)
+  {
+    perror("malloc failed");
+    return NULL;
+  }
 
-  // Parsear el campo gecos
   char name[256] = "N/A";
   char *gecos = strdup(pwd_entry->pw_gecos);
+  if (!gecos)
+  {
+    perror("strdup failed");
+    free(result);
+    return NULL;
+  }
   char *token = strtok(gecos, ",");
   if (token)
     strncpy(name, token, sizeof(name) - 1);
   name[sizeof(name) - 1] = '\0';
 
-  // Información básica
   snprintf(result, MAX_USER_FINGER_SIZE,
            "Login: %s\t\t\tName: %s\nDirectory: %s\tShell: %s\n",
            pwd_entry->pw_name, name, pwd_entry->pw_dir, pwd_entry->pw_shell);
 
-  // Información de sesiones activas
   for (int i = 0; i < active_count; i++)
   {
     if (strcmp(active_userss[i]->user, pwd_entry->pw_name) == 0)
@@ -90,7 +95,7 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
                "On since %s on %s\n", login_time, active_userss[i]->line);
     }
   }
-  // Comprobar correo
+
   char mail_path[MAX_USER_FINGER_SIZE / 4];
   snprintf(mail_path, sizeof(mail_path), "/var/mail/%s", pwd_entry->pw_name);
   struct stat mail_stat;
@@ -102,7 +107,7 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
   {
     strncat(result, "No Mail.\n", MAX_USER_FINGER_SIZE - strlen(result) - 1);
   }
-  // Comprobar plan
+
   char plan_path[MAX_USER_FINGER_SIZE / 4];
   snprintf(plan_path, sizeof(plan_path), "%s/.plan", pwd_entry->pw_dir);
   FILE *plan_file = fopen(plan_path, "r");
@@ -129,8 +134,7 @@ static int count_users_pw()
 {
   struct passwd *pwd_entry;
   int user_count = 0;
-  setpwent(); // Start reading /etc/passwd
-  // First pass to count users
+  setpwent();
   while ((pwd_entry = getpwent()) != NULL)
   {
     if (pwd_entry->pw_uid >= 1000 || pwd_entry->pw_uid == 0)
@@ -138,8 +142,7 @@ static int count_users_pw()
       user_count++;
     }
   }
-  endpwent(); // Finish reading /etc/passwd
-
+  endpwent();
   return user_count;
 }
 
@@ -161,38 +164,64 @@ static int count_active_users()
   return count;
 }
 
-// Generar finger para todos los usuarios
-static char **allFinger(int *activeCountRef, int *allFingerCount)
+static char **allFinger(int *allFingerCount)
 {
   int user_count = count_users_pw();
   int active_user_count = count_active_users();
   ActiveUser **active_users = malloc(active_user_count * sizeof(ActiveUser *));
+  if (!active_users)
+  {
+    perror("malloc failed");
+    return NULL;
+  }
   char **all_fingers = malloc(user_count * sizeof(char *));
+  if (!all_fingers)
+  {
+    perror("malloc failed");
+    free(active_users);
+    return NULL;
+  }
 
   active_user_count = loadActiveUsers(active_users, active_user_count);
+  if (active_user_count == -1)
+  {
+    free(active_users);
+    free(all_fingers);
+    return NULL;
+  }
 
-  setpwent(); // Iniciar lectura de /etc/passwd
-  // Iterar sobre todos los usuarios
+  setpwent();
   struct passwd *pwd_entry;
   while ((pwd_entry = getpwent()) != NULL)
   {
     if (pwd_entry->pw_uid >= 1000 || pwd_entry->pw_uid == 0)
-    { // Usuarios regulares y root
+    {
       char *finger_info = fingerForUser(pwd_entry, active_users, active_user_count);
+      if (!finger_info)
+      {
+        // Skip this user if finger information could not be retrieved
+        continue;
+      }
       all_fingers[(*allFingerCount)] = malloc(strlen(finger_info) + 1);
+      if (!all_fingers[(*allFingerCount)])
+      {
+        perror("malloc failed");
+        free(finger_info);
+        continue;
+      }
       strcpy(all_fingers[(*allFingerCount)], finger_info);
       (*allFingerCount)++;
       free(finger_info);
     }
   }
-  endpwent(); // Finalizar lectura
+  endpwent();
 
   freeActiveUsers(active_users, active_user_count);
   free(active_users);
 
   return all_fingers;
 }
-// If user != NULL, will just look for user's finger
+
 char **composeFinger(char *user, int *ret_array_size)
 {
   if (user != NULL)
@@ -204,34 +233,58 @@ char **composeFinger(char *user, int *ret_array_size)
     }
     int active_count = count_active_users();
     ActiveUser **active_users = malloc(active_count * sizeof(ActiveUser *));
+    if (!active_users)
+    {
+      perror("malloc failed");
+      return NULL;
+    }
     active_count = loadActiveUsers(active_users, active_count);
+    if (active_count == -1)
+    {
+      free(active_users);
+      return NULL;
+    }
     char *ffu = fingerForUser(pwd_entry, active_users, active_count);
     freeActiveUsers(active_users, active_count);
     free(active_users);
 
-    // Needed for returning a pointer to an array
+    if (!ffu)
+    {
+      return NULL;
+    }
+
     char **result = malloc(sizeof(char *));
+    if (!result)
+    {
+      perror("malloc failed");
+      free(ffu);
+      return NULL;
+    }
     result[0] = ffu;
     *ret_array_size = 1;
     return result;
   }
   else
   {
-    int activeCount = 0, allFingerCount = 0;
-    char **result = allFinger(&activeCount, &allFingerCount);
+    int allFingerCount = 0;
+    char **result = allFinger(&allFingerCount);
+    if (!result)
+    {
+      return NULL;
+    }
     *ret_array_size = allFingerCount;
     return result;
   }
 }
-// if argc == 2, will just look for user's finger
+
 int main(int argc, char *argv[])
 {
-  int array_size;
+  int array_size = 0;
   char **finger_result = composeFinger(argc == 2 ? argv[1] : NULL, &array_size);
 
   if (finger_result == NULL)
   {
-    printf("User not found\n");
+    printf("User not found or an error occurred\n");
     return 1;
   }
 
@@ -249,6 +302,11 @@ int main(int argc, char *argv[])
   else
   {
     perror("Error opening file");
+    for (int i = 0; i < array_size; i++)
+    {
+      free(finger_result[i]);
+    }
+    free(finger_result);
     return 1;
   }
 
