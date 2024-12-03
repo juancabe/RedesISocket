@@ -5,15 +5,8 @@ CFLAGS = -std=c11
 #Descomentar la siguiente linea para linux
 LIBS =
 
-PROGS = servidor clientcp clientudp
+composeFingerTestJuan: composeFinger.c
+	$(CC) $(CFLAGS) -O3 -o composeFingerTestJuan composeFinger.c $(LIBS) && echo "Compiled" %% time ./composeFingerTestJuan i0919688
 
-all: ${PROGS}
-
-servidor: servidor.c
-	${CC} ${CFLAGS} servidor.c -o servidor ${LIBS}
-	
-clientcp: clientcp.c
-	${CC} ${CFLAGS} clientcp.c -o clientcp ${LIBS}
-
-clientudp: clientudp.c
-	${CC} ${CFLAGS} clientudp.c -o clientudp ${LIBS}
+composeFingerTestAll: composeFinger.c
+	$(CC) $(CFLAGS) -O3 -o composeFingerTestAll composeFinger.c $(LIBS) && echo "Compiled" %% time ./composeFingerTestAll
