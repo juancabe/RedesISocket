@@ -7,7 +7,8 @@
 #include <sys/stat.h>
 #include <stdbool.h>
 
-#define MAX_USER_FINGER_SIZE 4096
+#define MAX_FINGER_LINE_SIZE 516
+#define MAX_USER_FINGER_SIZE MAX_FINGER_LINE_SIZE * 5 // 5 lineax maximo
 
 typedef struct
 {
@@ -80,9 +81,13 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
     strncpy(name, token, sizeof(name) - 1);
   name[sizeof(name) - 1] = '\0';
 
-  snprintf(result, MAX_USER_FINGER_SIZE,
-           "Login: %s\t\t\tName: %s\nDirectory: %s\tShell: %s\n",
-           pwd_entry->pw_name, name, pwd_entry->pw_dir, pwd_entry->pw_shell);
+  snprintf(result, MAX_FINGER_LINE_SIZE, // 1 line
+           "Login: %s\t\t\tName: %s\r\n",
+           pwd_entry->pw_name, name);
+
+  snprintf(result + strlen(result), MAX_FINGER_LINE_SIZE, // 2 lines
+           "Directory: %s\tShell: %s\r\n",
+           pwd_entry->pw_dir, pwd_entry->pw_shell);
 
   for (int i = 0; i < active_count; i++)
   {
@@ -91,7 +96,7 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
       char login_time[32];
       strftime(login_time, sizeof(login_time), "%c",
                localtime(&active_userss[i]->login_time));
-      snprintf(result + strlen(result), MAX_USER_FINGER_SIZE - strlen(result),
+      snprintf(result + strlen(result), MAX_FINGER_LINE_SIZE, // 3 lines
                "On since %s on %s\n", login_time, active_userss[i]->line);
     }
   }
@@ -101,11 +106,11 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
   struct stat mail_stat;
   if (stat(mail_path, &mail_stat) == 0 && mail_stat.st_size > 0)
   {
-    strncat(result, "You have mail.\n", MAX_USER_FINGER_SIZE - strlen(result) - 1);
+    strncat(result, "You have mail.\r\n", MAX_FINGER_LINE_SIZE); // 4 lines
   }
   else
   {
-    strncat(result, "No Mail.\n", MAX_USER_FINGER_SIZE - strlen(result) - 1);
+    strncat(result, "No Mail.\r\n", MAX_FINGER_LINE_SIZE);
   }
 
   char plan_path[MAX_USER_FINGER_SIZE / 4];
@@ -113,17 +118,12 @@ static char *fingerForUser(struct passwd *pwd_entry, ActiveUser **active_userss,
   FILE *plan_file = fopen(plan_path, "r");
   if (plan_file)
   {
-    strncat(result, "Plan:\n", MAX_USER_FINGER_SIZE - strlen(result) - 1);
-    char line[256];
-    while (fgets(line, sizeof(line), plan_file))
-    {
-      strncat(result, line, MAX_USER_FINGER_SIZE - strlen(result) - 1);
-    }
+    strncat(result, "You have Plan.\r\n", MAX_FINGER_LINE_SIZE); // 5 lines
     fclose(plan_file);
   }
   else
   {
-    strncat(result, "No Plan.\n", MAX_USER_FINGER_SIZE - strlen(result) - 1);
+    strncat(result, "No Plan.\r\n", MAX_FINGER_LINE_SIZE);
   }
 
   free(gecos);
