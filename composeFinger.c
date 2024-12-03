@@ -5,6 +5,7 @@
 #include <utmpx.h>
 #include <time.h>
 #include <sys/stat.h>
+#include <stdbool.h>
 
 #define BUFFER_SIZE 1165536
 #define MAX_ACTIVE_USERS 128
@@ -18,7 +19,7 @@ typedef struct
 } ActiveUser;
 
 // Cargar información de /var/run/utmpx en memoria
-int loadActiveUsers(ActiveUser *active_users, int max_users)
+static int loadActiveUsers(ActiveUser *active_users, int max_users)
 {
   struct utmpx *ut;
   int count = 0;
@@ -40,7 +41,7 @@ int loadActiveUsers(ActiveUser *active_users, int max_users)
 }
 
 // Generar finger para un usuario
-char *fingerForUser(struct passwd *pwd_entry, ActiveUser *active_users, int active_count)
+static char *fingerForUser(struct passwd *pwd_entry, ActiveUser *active_users, int active_count)
 {
   static char result[4096];
 
@@ -103,7 +104,7 @@ char *fingerForUser(struct passwd *pwd_entry, ActiveUser *active_users, int acti
 }
 
 // Generar finger para todos los usuarios
-char *allFinger(int *activeCountRef, int *allFingerCount)
+static char *allFinger(int *activeCountRef, int *allFingerCount)
 {
   static char all_fingers[BUFFER_SIZE];
   all_fingers[0] = '\0';
@@ -130,18 +131,36 @@ char *allFinger(int *activeCountRef, int *allFingerCount)
   endpwent(); // Finalizar lectura de /etc/passwd
   return all_fingers;
 }
-int main()
+// If user != NULL, will just look for user's finger
+char *composeFinger(char *user)
+{
+  if (user != NULL)
+  {
+    struct passwd *pwd_entry = getpwnam(user);
+    if (pwd_entry == NULL)
+    {
+      return "User not found";
+    }
+    ActiveUser active_users[MAX_ACTIVE_USERS];
+    int active_count = loadActiveUsers(active_users, MAX_ACTIVE_USERS);
+    return fingerForUser(pwd_entry, active_users, active_count);
+  }
+  else
+  {
+    int activeCount = 0, allFingerCount = 0;
+    return allFinger(&activeCount, &allFingerCount);
+  }
+}
+// if argc == 2, will just look for user's finger
+int main(int argc, char *argv[])
 {
   int activeCount = 0, allFingerCount = 0;
-  char *all_users_finger = allFinger(&activeCount, &allFingerCount);
-  printf("activeCount: %d\n", activeCount);
-  printf("allFingerCount: %d", allFingerCount);
+  char *finger_result = composeFinger(argc == 2 ? argv[1] : NULL);
 
-  // Write all_users_finger to file
   FILE *finger_file = fopen("finger.txt", "w");
   if (finger_file)
   {
-    fputs(all_users_finger, finger_file);
+    fputs(finger_result, finger_file);
     fclose(finger_file);
   }
   else
