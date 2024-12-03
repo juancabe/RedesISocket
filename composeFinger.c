@@ -8,7 +8,221 @@
 #include <stdbool.h>
 
 #define MAX_FINGER_LINE_SIZE 516
-#define MAX_USER_FINGER_SIZE MAX_FINGER_LINE_SIZE * 5 // 5 lineax maximo
+#define MAX_USER_FINGER_SIZE MAX_FINGER_LINE_SIZE * 5 // 5 lineas maximo
+
+typedef struct
+{
+  char *username;
+  char **lines;
+  time_t *login_times;
+  int session_count;
+  int max_sessions;
+} ActiveUserInfo;
+
+static char *generateFingerInfo(struct passwd *pwd_entry, ActiveUserInfo *user_info)
+{
+  char *result = malloc(MAX_USER_FINGER_SIZE);
+  if (!result)
+  {
+    perror("malloc failed");
+    return NULL;
+  }
+
+  char name[256] = "N/A";
+  char *gecos = strdup(pwd_entry->pw_gecos);
+  if (gecos)
+  {
+    char *token = strtok(gecos, ",");
+    if (token)
+    {
+      strncpy(name, token, sizeof(name) - 1);
+      name[sizeof(name) - 1] = '\0';
+    }
+    free(gecos);
+  }
+
+  snprintf(result, MAX_FINGER_LINE_SIZE,
+           "Login: %s\t\t\tName: %s\r\n",
+           pwd_entry->pw_name, name);
+
+  snprintf(result + strlen(result), MAX_FINGER_LINE_SIZE,
+           "Directory: %s\tShell: %s\r\n",
+           pwd_entry->pw_dir, pwd_entry->pw_shell);
+
+  for (int i = 0; i < user_info->session_count; i++)
+  {
+    char login_time[32];
+    strftime(login_time, sizeof(login_time), "%c",
+             localtime(&user_info->login_times[i]));
+    snprintf(result + strlen(result), MAX_FINGER_LINE_SIZE,
+             "On since %s on %s\n", login_time, user_info->lines[i]);
+  }
+
+  char mail_path[512];
+  snprintf(mail_path, sizeof(mail_path), "/var/mail/%s", pwd_entry->pw_name);
+  struct stat mail_stat;
+  if (stat(mail_path, &mail_stat) == 0 && mail_stat.st_size > 0)
+  {
+    strncat(result, "You have mail.\r\n", MAX_FINGER_LINE_SIZE);
+  }
+  else
+  {
+    strncat(result, "No Mail.\r\n", MAX_FINGER_LINE_SIZE);
+  }
+
+  char plan_path[512];
+  snprintf(plan_path, sizeof(plan_path), "%s/.plan", pwd_entry->pw_dir);
+  FILE *plan_file = fopen(plan_path, "r");
+  if (plan_file)
+  {
+    strncat(result, "You have Plan.\r\n", MAX_FINGER_LINE_SIZE);
+    fclose(plan_file);
+  }
+  else
+  {
+    strncat(result, "No Plan.\r\n", MAX_FINGER_LINE_SIZE);
+  }
+
+  return result;
+}
+
+char **fingerForActiveUsers(int *ret_array_size)
+{
+  int max_users = 128;
+  int user_count = 0;
+  ActiveUserInfo *active_users = malloc(max_users * sizeof(ActiveUserInfo));
+  if (!active_users)
+  {
+    perror("malloc failed");
+    return NULL;
+  }
+
+  struct utmpx *ut;
+  setutxent();
+  while ((ut = getutxent()) != NULL)
+  {
+    if (ut->ut_type == USER_PROCESS)
+    {
+      char *username = ut->ut_user;
+      int user_index = -1;
+      for (int i = 0; i < user_count; i++)
+      {
+        if (strcmp(active_users[i].username, username) == 0)
+        {
+          user_index = i;
+          break;
+        }
+      }
+
+      if (user_index == -1)
+      {
+        if (user_count >= max_users)
+        {
+          max_users *= 2;
+          ActiveUserInfo *new_active_users = realloc(active_users, max_users * sizeof(ActiveUserInfo));
+          if (!new_active_users)
+          {
+            perror("realloc failed");
+            endutxent();
+            free(active_users);
+            return NULL;
+          }
+          active_users = new_active_users;
+        }
+        user_index = user_count++;
+        active_users[user_index].username = strdup(username);
+        active_users[user_index].session_count = 0;
+        active_users[user_index].max_sessions = 4;
+        active_users[user_index].lines = malloc(active_users[user_index].max_sessions * sizeof(char *));
+        active_users[user_index].login_times = malloc(active_users[user_index].max_sessions * sizeof(time_t));
+        if (!active_users[user_index].username || !active_users[user_index].lines || !active_users[user_index].login_times)
+        {
+          perror("malloc failed");
+          endutxent();
+          free(active_users);
+          return NULL;
+        }
+      }
+
+      ActiveUserInfo *user_info = &active_users[user_index];
+      if (user_info->session_count >= user_info->max_sessions)
+      {
+        user_info->max_sessions *= 2;
+        char **new_lines = realloc(user_info->lines, user_info->max_sessions * sizeof(char *));
+        time_t *new_login_times = realloc(user_info->login_times, user_info->max_sessions * sizeof(time_t));
+        if (!new_lines || !new_login_times)
+        {
+          perror("realloc failed");
+          endutxent();
+          free(active_users);
+          return NULL;
+        }
+        user_info->lines = new_lines;
+        user_info->login_times = new_login_times;
+      }
+      user_info->lines[user_info->session_count] = strdup(ut->ut_line);
+      user_info->login_times[user_info->session_count] = ut->ut_tv.tv_sec;
+      user_info->session_count++;
+    }
+  }
+  endutxent();
+
+  char **finger_infos = malloc(user_count * sizeof(char *));
+  if (!finger_infos)
+  {
+    perror("malloc failed");
+    for (int i = 0; i < user_count; i++)
+    {
+      free(active_users[i].username);
+      free(active_users[i].lines);
+      free(active_users[i].login_times);
+    }
+    free(active_users);
+    return NULL;
+  }
+
+  *ret_array_size = 0;
+  for (int i = 0; i < user_count; i++)
+  {
+    struct passwd *pwd_entry = getpwnam(active_users[i].username);
+    if (!pwd_entry)
+    {
+      free(active_users[i].username);
+      for (int j = 0; j < active_users[i].session_count; j++)
+      {
+        free(active_users[i].lines[j]);
+      }
+      free(active_users[i].lines);
+      free(active_users[i].login_times);
+      continue;
+    }
+    char *finger_info = generateFingerInfo(pwd_entry, &active_users[i]);
+    if (!finger_info)
+    {
+      free(active_users[i].username);
+      for (int j = 0; j < active_users[i].session_count; j++)
+      {
+        free(active_users[i].lines[j]);
+      }
+      free(active_users[i].lines);
+      free(active_users[i].login_times);
+      continue;
+    }
+    finger_infos[*ret_array_size] = finger_info;
+    (*ret_array_size)++;
+
+    free(active_users[i].username);
+    for (int j = 0; j < active_users[i].session_count; j++)
+    {
+      free(active_users[i].lines[j]);
+    }
+    free(active_users[i].lines);
+    free(active_users[i].login_times);
+  }
+  free(active_users);
+
+  return finger_infos;
+}
 
 typedef struct
 {
@@ -300,7 +514,46 @@ void stats_finger(char **finger_result, int arr_size)
   free(concat_message);
 }
 
-int main(int argc, char *argv[])
+// If user is NULL, it will return the finger information for all active users, so use fingerForActiveUsers
+int main(int argc, int *argv)
+{
+  int array_size = 0;
+  char **finger_result = composeFinger(argc == 2 ? argv[1] : NULL, &array_size);
+
+  if (finger_result == NULL)
+  {
+    printf("User not found or an error occurred\n");
+    return 1;
+  }
+
+  stats_finger(finger_result, array_size);
+
+  FILE *finger_file = fopen("finger.txt", "w");
+  if (finger_file)
+  {
+    for (int i = 0; i < array_size; i++)
+    {
+      fprintf(finger_file, "%s\n", finger_result[i]);
+      free(finger_result[i]);
+    }
+    free(finger_result);
+    fclose(finger_file);
+  }
+  else
+  {
+    perror("Error opening file");
+    for (int i = 0; i < array_size; i++)
+    {
+      free(finger_result[i]);
+    }
+    free(finger_result);
+    return 1;
+  }
+
+  return 0;
+}
+
+int main_old(int argc, char *argv[])
 {
   int array_size = 0;
   char **finger_result = composeFinger(argc == 2 ? argv[1] : NULL, &array_size);
