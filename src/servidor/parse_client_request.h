@@ -4,7 +4,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef DEBUG
 #include <stdio.h>
+#endif
 
 typedef enum
 {
