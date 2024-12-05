@@ -32,13 +32,20 @@ void test_parse_client_request(char *input, parse_client_request_return expected
 {
   char *username = NULL;
   char *hostname = NULL;
-  parse_client_request_return ret = parse_client_request(input, hostname, username);
+  parse_client_request_return ret = parse_client_request(input, &hostname, &username);
   printf("Test: %s -> %d\n", input, ret);
-  printf("%s\n\n", ret == expected ? test_passed : test_failed);
+  printf("%s\n", ret == expected ? test_passed : test_failed);
   if (username != NULL)
+  {
+    printf("Username: %s\n", username);
     free(username);
+  }
   if (hostname != NULL)
+  {
+    printf("Hostname: %s\n", hostname);
     free(hostname);
+  }
+  printf("\n");
 }
 int main()
 {

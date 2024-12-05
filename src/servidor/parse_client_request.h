@@ -174,7 +174,11 @@ static int STATE_username(
 #ifdef DEBUG
     printf("[STATE_username] CRLF -> ");
 #endif
-    *out_username = username_start;
+    *out_username = malloc(ptr - username_start + 1);
+    if (*out_username == NULL)
+      return ERROR;
+    strncpy(*out_username, username_start, ptr - username_start);
+    (*out_username)[ptr - username_start] = '\0';
     *username_set_out = true;
     if (must_have_hostname)
     {
@@ -247,15 +251,15 @@ static int username_or_hostname(char *ptr, char **out_username, char **out_hostn
   }
 }
 
-int parse_client_request(char *in_buf, char *out_hostname, char *out_username)
+int parse_client_request(char *in_buf, char **out_hostname, char **out_username)
 {
   char *ptr = in_buf;
   bool found;
   bool username_set_out = false;
   bool hostname_set_out = false;
   bool must_have_hostname = false;
-  out_hostname = NULL;
-  out_username = NULL;
+  *out_hostname = NULL;
+  *out_username = NULL;
 
   if (ptr == NULL || check_end(ptr))
   {
@@ -289,7 +293,7 @@ int parse_client_request(char *in_buf, char *out_hostname, char *out_username)
     if (skip_spaces(&ptr))
     {
       // after spaces, it can be username or hostname, no CRLF or \0
-      return username_or_hostname(ptr, &out_username, &out_hostname, &username_set_out, &hostname_set_out, must_have_hostname);
+      return username_or_hostname(ptr, out_username, out_hostname, &username_set_out, &hostname_set_out, must_have_hostname);
     }
     else
     {
@@ -313,7 +317,7 @@ int parse_client_request(char *in_buf, char *out_hostname, char *out_username)
     }
     else
     {
-      return username_or_hostname(ptr, &out_username, &out_hostname, &username_set_out, &hostname_set_out, must_have_hostname);
+      return username_or_hostname(ptr, out_username, out_hostname, &username_set_out, &hostname_set_out, must_have_hostname);
     }
   }
 }
