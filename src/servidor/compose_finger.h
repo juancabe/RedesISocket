@@ -1,3 +1,6 @@
+#ifndef COMPOSE_FINGER_H
+#define COMPOSE_FINGER_H
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,7 +78,7 @@ char *user_info(const char *username, struct utmpx *ut_in)
     setutxent();
     while ((ut = getutxent()) != NULL)
     {
-      if (ut->ut_type == USER_PROCESS && strcmp(ut->ut_user, username) == 0)
+      if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
       {
         logged_in = 1;
         break;
@@ -98,14 +101,34 @@ char *user_info(const char *username, struct utmpx *ut_in)
     {
       while (fread(&wtmp_record, sizeof(struct utmp), 1, wtmp_file) == 1)
       {
-        if (strcmp(wtmp_record.ut_user, username) == 0)
+        if (strncmp(wtmp_record.ut_user, username, UT_NAMESIZE) == 0)
         {
           has_logged_in = true;
           if (wtmp_record.ut_type == USER_PROCESS || wtmp_record.ut_type == LOGIN_PROCESS)
           {
             last_logout_time = wtmp_record.ut_time;
-            last_logout_host = strdup(wtmp_record.ut_host);
-            last_logout_line = strdup(wtmp_record.ut_line);
+            last_logout_host = malloc(UT_HOSTSIZE + 1);
+            if (last_logout_host)
+            {
+              strncpy(last_logout_host, wtmp_record.ut_host, UT_HOSTSIZE);
+              last_logout_host[UT_HOSTSIZE] = '\0';
+            }
+            else
+            {
+              // Handle allocation error
+              return NULL;
+            }
+            last_logout_line = malloc(UT_LINESIZE + 1);
+            if (last_logout_line)
+            {
+              strncpy(last_logout_line, wtmp_record.ut_line, UT_LINESIZE);
+              last_logout_line[UT_LINESIZE] = '\0';
+            }
+            else
+            {
+              // Handle allocation error
+              return NULL;
+            }
           }
         }
       }
@@ -241,23 +264,4 @@ char *all_users_info()
   return info;
 }
 
-int main()
-{
-
-  char *info = all_users_info();
-  if (info)
-  {
-    printf("%s", info);
-    free(info);
-  }
-
-  printf("FOR USER\n");
-
-  info = user_info("i0960231", NULL);
-  if (info)
-  {
-    printf("%s", info);
-    free(info);
-  }
-  return 0;
-}
+#endif
