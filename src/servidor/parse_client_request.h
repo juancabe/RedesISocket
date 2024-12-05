@@ -95,7 +95,12 @@ static int STATE_username(
   }
   else if (*ptr == '@') // Check @
   {
-    *out_username = username_start;
+    *out_username = malloc(ptr - username_start + 1);
+    if (*out_username == NULL)
+      return ERROR;
+    strncpy(*out_username, username_start, ptr - username_start);
+    (*out_username)[ptr - username_start] = '\0';
+
     *username_set_out = true;
     ptr++;
     if (check_CRLF(ptr) || check_end(ptr) || skip_spaces(&ptr))
@@ -104,8 +109,68 @@ static int STATE_username(
     }
     else
     {
-      // TODO check hostname
-      exit(-1);
+      return STATE_hostname(ptr, out_username, out_hostname, username_set_out, hostname_set_out, must_have_hostname);
+    }
+  }
+  else
+  {
+    return ERROR;
+  }
+}
+
+// Expecting a hostname ex: @hostname
+static int STATE_hostname(
+    char *ptr,
+    char **out_username,
+    char **out_hostname,
+    bool *username_set_out,
+    bool *hostname_set_out,
+    bool must_have_hostname)
+{
+  if (*ptr != '@')
+  {
+    return ERROR;
+  }
+
+  ptr++;
+
+  if (check_CRLF(ptr) || check_end(ptr))
+  {
+    return ERROR;
+  }
+
+  char *hostname_start = ptr;
+
+  while (*ptr != ' ' && !check_CRLF(ptr) && !check_end(ptr))
+  {
+    ptr++;
+  }
+
+  // Now ptr is pointing to a space, CRLF or end of string
+  // Only CRLF is valid
+
+  // Check that we read something
+  if (ptr == hostname_start)
+  {
+    return ERROR;
+  }
+
+  if (check_CRLF(ptr)) // Check CRLF
+  {
+    *out_hostname = malloc(ptr - hostname_start + 1);
+    if (*out_hostname == NULL)
+      return ERROR;
+    strncpy(*out_hostname, hostname_start, ptr - hostname_start);
+    (*out_hostname)[ptr - hostname_start] = '\0';
+
+    *hostname_set_out = true;
+    if (must_have_hostname)
+    {
+      return HOSTNAME_REDIRECT;
+    }
+    else
+    {
+      return ERROR;
     }
   }
   else
@@ -153,7 +218,7 @@ int parse_client_request(char *in_buf, char *out_hostname, char *out_username)
       }
       else if ((*ptr) == '@')
       {
-        // TODO STATE_hostname
+        return STATE_hostname(ptr, &out_username, &out_hostname, &username_set_out, &hostname_set_out, must_have_hostname);
         exit(-1);
       }
       else
