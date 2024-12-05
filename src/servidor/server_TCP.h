@@ -2,6 +2,8 @@
 #define SERVER_TCP_H
 
 #include "common.h"
+#include "common_tcp.h"
+#include "compose_finger.h"
 
 /*
  *				S E R V E R T C P
@@ -13,6 +15,7 @@
  *	logging information to stdout.
  *
  */
+
 void serverTCP(int s, struct sockaddr_in clientaddr_in)
 {
   int reqcnt = 0;         /* keeps count of number of requests */
@@ -70,86 +73,27 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 
   if (1)
   {
-    // Receive all data the client wants
-    // to send until he closes his SENDING connection
-    // (he can still receive our response)
-    const int step_len = 1024;
-    int received_len, actual_len = 0;
-    char *buffer = malloc(step_len);
-    while (received_len = recv(s, buffer + actual_len, step_len, 0))
+
+    // First message should be one line
+    char *buffer = receive_one_message(hostname, s);
+    if (buffer == NULL)
     {
-      if (received_len < 0)
-        errout(hostname);
-
-      actual_len += received_len;
-      char *tempPtr = buffer;
-      buffer = realloc(buffer, actual_len + step_len);
-      if (buffer == NULL)
-      {
-        errout(hostname);
-        free(tempPtr);
-      }
+      errout(hostname);
     }
-
-    /*
-    EXAMPLE OF EXECUTION OF THE LOOP
-    Receiving 2*step_len data
-  recv()
-      1. actual_len = 0, reading step_len bytes
-        a) actual_len -> actual_len'
-        b) buffer alloc enough for next step_len bytes
-        (lets suppose received_len == 1024)
-      2. actual_len = 1024, reading step_len bytes
-        a) actual_len -> actual_len'
-        b) buffer alloc enough for next step_len bytes
-      3. recv returns 0, end of loop
-    */
 
     // Now we must parse client's message and respond to it
     // TODO
 
-    FILE *outLog = fopen(LOG_FILENAME, "a");
-    fprintf(outLog, "[TCP SERVER] RECEIVED\n");
-    fprintf(outLog, "Client message:\n");
-    fprintf(outLog, "\n%s\n", buffer);
-    free(buffer);
-    fclose(outLog);
-  }
-  else
-  { // Example's approach
-    while (len = recv(s, buf, TAM_BUFFER, 0))
-    {
-      if (len == -1)
-        errout(hostname); /* error from recv */
+    // Now we must compose the response, i.e. call composeFinger
+    // TODO
 
-      /* The reason this while loop exists is that there
-       * is a remote possibility of the above recv returning
-       * less than TAM_BUFFER bytes.  This is because a recv returns
-       * as soon as there is some data, and will not wait for
-       * all of the requested data to arrive.  Since TAM_BUFFER bytes
-       * is relatively small compared to the allowed TCP
-       * packet sizes, a partial receive is unlikely.  If
-       * this example had used 2048 bytes requests instead,
-       * a partial receive would be far more likely.
-       * This loop will keep receiving until all TAM_BUFFER bytes
-       * have been received, thus guaranteeing that the
-       * next recv at the top of the loop will start at
-       * the begining of the next request.
-       */
-      while (len < TAM_BUFFER)
-      {
-        len1 = recv(s, &buf[len], TAM_BUFFER - len, 0);
-        if (len1 == -1)
-          errout(hostname);
-        len += len1;
-      }
-      /* Increment the request count. */
-      reqcnt++;
-      /* Send a response back to the client. */
-      if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER)
-        errout(hostname);
-    }
+    // Now we must send the response to the client
+    // TODO
+
+    // Now we must close the connection
+    // TODO
   }
+
   close(s);
 
   time(&timevar);
