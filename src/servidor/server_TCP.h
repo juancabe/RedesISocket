@@ -91,10 +91,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     // TODO
 
     // Now we must close the connection
-    // TODO
+    close(s);
   }
-
-  close(s);
 
   time(&timevar);
   printf("Completed %s port %u, %d requests, at %s\n",
