@@ -175,7 +175,7 @@ char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "Directory: %s\tShell: %s\r\n", pwd->pw_dir, pwd->pw_shell);
   lines_ptr = lines + written_count;
 
-  struct utmpx *ut = ut_in->ut;
+  struct utmpx *ut = ut_in ? ut_in->ut : NULL;
   bool logged_in = ut == NULL ? 0 : 1;
   if (!logged_in)
   {
