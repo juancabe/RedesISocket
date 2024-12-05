@@ -5,11 +5,8 @@
 int FIN = 0;
 void finalizar() { FIN = 1; }
 
-int main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
-
   int s_TCP, s_UDP; /* connected socket descriptor */
   int ls_TCP;       /* listen socket descriptor */
 
@@ -78,19 +75,6 @@ char *argv[];
     printf("%s: unable to bind address UDP\n", argv[0]);
     exit(1);
   }
-
-  /* Now, all the initialization of the server is
-   * complete, and any user errors will have already
-   * been detected.  Now we can fork the daemon and
-   * return to the user.  We need to do a setpgrp
-   * so that the daemon will no longer be associated
-   * with the user's control terminal.  This is done
-   * before the fork, so that the child will not be
-   * a process group leader.  Otherwise, if the child
-   * were to open a terminal, it would become associated
-   * with that terminal as its control terminal.  It is
-   * always best for the parent to do the setpgrp.
-   */
   setpgrp();
 
   switch (fork())
@@ -101,23 +85,9 @@ char *argv[];
     exit(1);
 
   case 0: /* The child process (daemon) comes here. */
-
-    /* Close stdin and stderr so that they will not
-     * be kept open.  Stdout is assumed to have been
-     * redirected to some logging file, or /dev/null.
-     * From now on, the daemon will not report any
-     * error messages.  This daemon will loop forever,
-     * waiting for connections and forking a child
-     * server to handle each one.
-     */
     fclose(stdin);
     fclose(stderr);
 
-    /* Set SIGCLD to SIG_IGN, in order to prevent
-     * the accumulation of zombies as each child
-     * terminates.  This means the daemon does not
-     * have to make wait calls to clean them up.
-     */
     if (sigaction(SIGCHLD, &sa, NULL) == -1)
     {
       perror(" sigaction(SIGCHLD)");
@@ -165,16 +135,6 @@ char *argv[];
         /* Comprobamos si el socket seleccionado es el socket TCP */
         if (FD_ISSET(ls_TCP, &readmask))
         {
-          /* Note that addrlen is passed as a pointer
-           * so that the accept call can return the
-           * size of the returned address.
-           */
-          /* This call will block until a new
-           * connection arrives.  Then, it will
-           * return the address of the connecting
-           * peer, and a new socket descriptor, s,
-           * for that connection.
-           */
           s_TCP = accept(ls_TCP, (struct sockaddr *)&clientaddr_in, &addrlen);
           if (s_TCP == -1)
             exit(1);
@@ -186,37 +146,16 @@ char *argv[];
             close(ls_TCP); /* Close the listen socket inherited from the daemon. */
             serverTCP(s_TCP, clientaddr_in);
             exit(0);
-          default: /* Daemon process comes here. */
-            /* The daemon needs to remember
-             * to close the new accept socket
-             * after forking the child.  This
-             * prevents the daemon from running
-             * out of file descriptor space.  It
-             * also means that when the server
-             * closes the socket, that it will
-             * allow the socket to be destroyed
-             * since it will be the last close.
-             */
+          default:
             close(s_TCP);
           }
-        } /* De TCP*/
-        /* Comprobamos si el socket seleccionado es el socket UDP */
+        }
         if (FD_ISSET(s_UDP, &readmask))
         {
-          /* This call will block until a new
-           * request arrives.  Then, it will
-           * return the address of the client,
-           * and a buffer containing its request.
-           * BUFFERSIZE - 1 bytes are read so that
-           * room is left at the end of the buffer
-           * for a null character.
-           */
-
           serverUDP(s_UDP, clientaddr_in);
         }
       }
-    } /* Fin del bucle infinito de atenci�n a clientes */
-    /* Cerramos los sockets UDP y TCP */
+    }
     close(ls_TCP);
     close(s_UDP);
 
