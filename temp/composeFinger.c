@@ -1,4 +1,4 @@
-#include "../src/server/compose_finger.h"
+#include "../src/servidor/compose_finger.h"
 
 int main()
 {

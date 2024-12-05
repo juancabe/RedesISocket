@@ -16,8 +16,112 @@
 
 #define MAX_LINE_LENGTH 516
 
+typedef struct
+{
+  char *username;
+  struct utmpx *ut;
+  int ut_count;
+} UUTX_user_utmpxs;
+
+typedef struct
+{
+  int count;
+  UUTX_user_utmpxs *users;
+} UUTX_array;
+
+void UUTX_array_start(UUTX_array *array)
+{
+  array->count = 0;
+  array->users = NULL;
+}
+
+static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
+{
+  if (array == NULL || ut == NULL)
+  {
+    return -1;
+  }
+
+  if (array->users == NULL)
+  {
+    if (array->count != 0)
+    {
+      return -2;
+    }
+    array->users = malloc(sizeof(UUTX_user_utmpxs));
+    if (array->users == NULL)
+    {
+      return -3;
+    }
+    array->users[0].username = strdup(ut->ut_user);
+    {
+      return -3;
+    }
+
+    array->users[0].ut = ut;
+    array->users[0].ut_count = 1;
+    array->count = 1;
+    return 0;
+  }
+  else
+  {
+    for (int i = 0; i < array->count; i++)
+    {
+      if (strcmp(array->users[i].username, ut->ut_user) == 0)
+      {
+        array->users[i].ut_count++;
+        array->users[i].ut = realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
+        if (array->users[i].ut == NULL)
+        {
+          return -3;
+        }
+        array->users[i].ut[array->users[i].ut_count - 1] = *ut;
+        return 0;
+      }
+    }
+    array->users = realloc(array->users, (array->count + 1) * sizeof(UUTX_user_utmpxs));
+    if (array->users == NULL)
+    {
+      return -3;
+    }
+    array->users[array->count].username = strdup(ut->ut_user);
+    if (array->users[array->count].username == NULL)
+    {
+      return -3;
+    }
+    array->users[array->count].ut = malloc(sizeof(struct utmpx));
+    if (array->users[array->count].ut == NULL)
+    {
+      return -3;
+    }
+    array->users[array->count].ut[0] = *ut;
+    array->users[array->count].ut_count = 1;
+    array->count++;
+    return 0;
+  }
+}
+
+static int UUTX_array_free(UUTX_array *array)
+{
+  if (array == NULL)
+  {
+    return -1;
+  }
+  if (array->users == NULL)
+  {
+    return 0;
+  }
+  for (int i = 0; i < array->count; i++)
+  {
+    free(array->users[i].username);
+    free(array->users[i].ut);
+  }
+  free(array->users);
+  return 0;
+}
+
 // If ut == NULL, it will check if the user is logged in, opening utmpx
-char *user_info(const char *username, struct utmpx *ut_in)
+char *user_info(char *username, UUTX_user_utmpxs *ut_in)
 {
   char *lines = NULL;
   char *lines_ptr = NULL;
@@ -71,7 +175,7 @@ char *user_info(const char *username, struct utmpx *ut_in)
   written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "Directory: %s\tShell: %s\r\n", pwd->pw_dir, pwd->pw_shell);
   lines_ptr = lines + written_count;
 
-  struct utmpx *ut = ut_in;
+  struct utmpx *ut = ut_in->ut;
   bool logged_in = ut == NULL ? 0 : 1;
   if (!logged_in)
   {
@@ -165,9 +269,23 @@ char *user_info(const char *username, struct utmpx *ut_in)
       // Handle allocation error
       return NULL;
     }
+    // Draw a line for each terminal active for the user
+
+    for (int i = 0; i < ut_in->ut_count; i++)
+    {
+      lines_ptr = lines + written_count;
+      written_count += snprintf(lines_ptr, MAX_LINE_LENGTH,
+                                "On since %s on %s from %s\r\n",
+                                login_time, ut_in->ut[i].ut_line,
+                                ut_in->ut[i].ut_host[0] != '\0' ? ut_in->ut[i].ut_host : "local");
+      lines_ptr = lines + written_count;
+    }
+
+    /* TODO REMOVE
     lines_ptr = lines + written_count;
     written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "On since %s on %s from %s\r\n", login_time, ut->ut_line, ut->ut_host[0] != '\0' ? ut->ut_host : "local");
     lines_ptr = lines + written_count;
+    */
   }
 
   char mail_path[512];
@@ -233,34 +351,41 @@ char *all_users_info()
   char *info = NULL;
   struct utmpx *ut;
   setutxent();
-  int user_count = 0;
-  bool first = true;
+  // User array
+  UUTX_array users_array;
+  UUTX_array_start(&users_array);
 
   while ((ut = getutxent()) != NULL)
   {
     if (ut->ut_type == USER_PROCESS)
     {
-      user_count++;
-      char *user_str = user_info(ut->ut_user, ut);
-      if (user_str)
-      {
-        size_t current_len = info ? strlen(info) : 0;
-        size_t user_len = strlen(user_str);
-        char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
-        if (!new_info)
-        {
-          free(info);
-          free(user_str);
-          return NULL;
-        }
-        info = new_info;
-        strcpy(info + current_len, user_str);
-        strcat(info, "\r\n");
-        free(user_str);
-      }
+      UUTX_array_add(&users_array, ut);
     }
   }
   endutxent();
+
+  for (int i = 0; i < users_array.count; i++)
+  {
+    char *user_str = user_info(users_array.users[i].username, &(users_array.users[i]));
+    if (user_str)
+    {
+      size_t current_len = info ? strlen(info) : 0;
+      size_t user_len = strlen(user_str);
+      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      if (!new_info)
+      {
+        free(info);
+        free(user_str);
+        UUTX_array_free(&users_array);
+        return NULL;
+      }
+      info = new_info;
+      strcpy(info + current_len, user_str);
+      strcat(info, "\r\n");
+      free(user_str);
+    }
+  }
+
   return info;
 }
 
