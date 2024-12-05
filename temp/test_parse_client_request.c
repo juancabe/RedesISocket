@@ -66,5 +66,15 @@ int main()
 
   test_parse_client_request("@localhost\r\n", HOSTNAME_REDIRECT);
 
+  test_parse_client_request("/W i0919688", ERROR);
+
+  test_parse_client_request("/W\r\n", NO_USERNAME_NO_HOSTNAME);
+
+  test_parse_client_request("/W i0919688@localhost", ERROR);
+
+  test_parse_client_request("/W i0919688@localhost\r\n", HOSTNAME_REDIRECT);
+
+  test_parse_client_request("/W i0919688\r\n", USERNAME);
+
   return 0;
 }
