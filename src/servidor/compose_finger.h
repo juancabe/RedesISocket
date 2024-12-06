@@ -419,12 +419,10 @@ char *just_one_user_info(char *username)
     {
 
       int ret = UUTX_array_add(&users_array, ut);
-      printf("ret: %d\n", ret);
     }
   }
   endutxent();
 
-  printf("Count: %d\n", users_array.count);
   for (int i = 0; i < users_array.count; i++)
   {
     char *user_str = user_info(users_array.users[i].username, &(users_array.users[i]));
