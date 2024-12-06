@@ -75,62 +75,17 @@ char *argv[];
 
 	/* Print out a startup message for the user. */
 	time(&timevar);
-	printf("Connected to %s on port %u at %s",
-				 argv[1], ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
+	printf("Connected to %s on port %u at %s", argv[1], ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
 
-	if (1)
-	{
-		// Send request to server (function must be shared between server and client)
-		char *request = "\r\n";
-		int response_size;
-		char *response = TCP_send_and_wait_server_request(s, request, &response_size);
+	// Send request to server (function must be shared between server and client)
+	char *request = "\r\n";
+	int response_size;
+	char *response = TCP_send_and_wait_server_request(s, request, &response_size);
 
-		// Add null terminator to response
-		response = realloc(response, response_size + 1);
-		response[response_size] = '\0';
-		printf("[CLIENT TCP] Message received: %s\n", response);
-	}
-	else
-	{ // EXAMPLE
-		for (i = 1; i <= 5; i++)
-		{
-			*buf = i;
-			if (send(s, buf, TAM_BUFFER, 0) != TAM_BUFFER)
-			{
-				fprintf(stderr, "%s: Connection aborted on error ", argv[0]);
-				fprintf(stderr, "on send number %d\n", i);
-				exit(1);
-			}
-		}
-		if (shutdown(s, 1) == -1)
-		{
-			perror(argv[0]);
-			fprintf(stderr, "%s: unable to shutdown socket\n", argv[0]);
-			exit(1);
-		}
-		while (i = recv(s, buf, TAM_BUFFER, 0))
-		{
-			if (i == -1)
-			{
-				perror(argv[0]);
-				fprintf(stderr, "%s: error reading result\n", argv[0]);
-				exit(1);
-			}
-			while (i < TAM_BUFFER)
-			{
-				j = recv(s, &buf[i], TAM_BUFFER - i, 0);
-				if (j == -1)
-				{
-					perror(argv[0]);
-					fprintf(stderr, "%s: error reading result\n", argv[0]);
-					exit(1);
-				}
-				i += j;
-			}
-			/* Print out message indicating the identity of this reply. */
-			printf("Received result number %d\n", *buf);
-		}
-	}
+	// Add null terminator to response
+	response = realloc(response, response_size + 1);
+	response[response_size] = '\0';
+	printf("[CLIENT TCP] Message received: %s\n", response);
 
 	/* Print message indicating completion of task. */
 	time(&timevar);
