@@ -10,7 +10,7 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
     return NULL;
   }
 
-  // Receive response from server
+  // Receive response from server, until he closes connection
   const int step_len = 1024;
   int received_len, actual_len = 0;
   char *buffer = malloc(step_len);
@@ -30,6 +30,40 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
   }
 
   *response_size = actual_len;
+  return buffer;
+}
+
+// Receive one message, i.e. until \r\n
+static char *receive_one_message(char *hostname, int s)
+{
+  const int step_len = 1024;
+  int received_len, actual_len = 0;
+  char *buffer = malloc(step_len);
+  if (buffer == NULL)
+  {
+    errout(hostname);
+    return NULL;
+  }
+  while (received_len = recv(s, buffer + actual_len, step_len, 0))
+  {
+    if (received_len < 0)
+      errout(hostname);
+
+    actual_len += received_len;
+    char *tempPtr = buffer;
+    buffer = realloc(buffer, actual_len + step_len);
+    if (buffer == NULL)
+    {
+      errout(hostname);
+      free(tempPtr);
+    }
+
+    if (strstr(buffer, "\r\n") != NULL)
+    {
+      break;
+    }
+  }
+
   return buffer;
 }
 
