@@ -2,7 +2,7 @@
 #define SERVER_TCP_H
 
 #include "common_server.h"
-#include "common_TCP.h"
+#include "../common_TCP.h"
 #include "compose_finger.h"
 #include "parse_client_request.h"
 
