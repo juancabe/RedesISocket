@@ -20,7 +20,7 @@ int main()
 
   printf("FOR USER\n");
 
-  info = user_info("i0960231", NULL);
+  info = user_info("i0919688", NULL);
   if (info)
   {
     printf("%s", info);
