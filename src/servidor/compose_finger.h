@@ -420,7 +420,9 @@ char *just_one_user_info(char *username)
   {
     if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
     {
-      UUTX_array_add(&users_array, ut);
+
+      int ret = UUTX_array_add(&users_array, ut);
+      printf("ret: %d\n", ret);
     }
   }
   endutxent();
