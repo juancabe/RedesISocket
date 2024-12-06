@@ -5,16 +5,19 @@
 
 char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
 {
+  printf("Sending request: %s\n", request);
   if (send(s, request, strlen(request), 0) != strlen((request)))
   {
     return NULL;
   }
+  printf("Request sent\n");
 
   // Receive response from server, until he closes connection
   const int step_len = 1024;
   int received_len, actual_len = 0;
   char *buffer = malloc(step_len);
   bool received = false;
+  printf("Receiving response\n");
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
     received = true;
