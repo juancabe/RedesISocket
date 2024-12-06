@@ -19,6 +19,7 @@
 
 void serverTCP(int s, struct sockaddr_in clientaddr_in)
 {
+  char SERVER_NAME[] = "serverTCP";
   int reqcnt = 0;         /* keeps count of number of requests */
   char buf[TAM_BUFFER];   /* This example uses TAM_BUFFER byte messages. */
   char hostname[MAXHOST]; /* remote host's name string */
@@ -69,7 +70,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger,
                  sizeof(linger)) == -1)
   {
-    errout(hostname);
+    errout(SERVER_NAME);
   }
 
   if (1)
@@ -79,7 +80,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     char *buffer = receive_one_message(hostname, s);
     if (buffer == NULL)
     {
-      errout(hostname);
+      errout(SERVER_NAME);
     }
 
     // Now we must parse client's message and respond to it
@@ -111,7 +112,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     if (send(s, response, strlen(response), 0) != strlen(response))
     // \0 no se envia, acaba con  \r\n
     {
-      errout(hostname);
+      errout(SERVER_NAME);
     }
 
     // Now we must close the connection
