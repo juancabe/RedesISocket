@@ -420,6 +420,7 @@ char *just_one_user_info(char *username)
   {
     if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
     {
+      printf("Found user %s\n", ut->ut_user);
       UUTX_array_add(&users_array, ut);
     }
   }
