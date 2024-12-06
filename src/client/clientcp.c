@@ -1,4 +1,4 @@
-#include "common.h"
+#include "../common.h"
 #include "../common_TCP.h"
 
 int main(argc, argv)
