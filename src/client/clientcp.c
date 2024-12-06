@@ -81,7 +81,7 @@ char *argv[];
 	if (1)
 	{
 		// Send request to server (function must be shared between server and client)
-		char *request = "juan\r\n";
+		char *request = "i0919688\r\n";
 		int response_size;
 		char *response = TCP_send_and_wait_server_request(s, request, &response_size);
 
