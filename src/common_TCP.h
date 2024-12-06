@@ -16,6 +16,7 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
   char *buffer = malloc(step_len);
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
+    printf("Received %d bytes\n", received_len);
     if (received_len < 0)
       return NULL;
 
