@@ -62,9 +62,11 @@ int client_tcp(char *req)
 		exit(1);
 	}
 
-	/* Print out a startup message for the user. */
+/* Print out a startup message for the user. */
+#ifdef DEBUG
 	time(&timevar);
 	printf("Connected to localhost on port %u at %s", ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
+#endif
 
 	// Send request to server
 	int response_size;
@@ -78,12 +80,14 @@ int client_tcp(char *req)
 	// Add null terminator to response
 	response = realloc(response, response_size + 1);
 	response[response_size] = '\0';
-	printf("[CLIENT TCP] Message received: %s\n", response);
+	printf("%s\n", response);
 	free(response);
 
 	/* Print message indicating completion of task. */
+#ifdef DEBUG
 	time(&timevar);
 	printf("All done at %s", (char *)ctime(&timevar));
+#endif
 }
 
 #endif
