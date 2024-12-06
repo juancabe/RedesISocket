@@ -1,9 +1,10 @@
+#ifndef CLIENT_TCP_H
+#define CLIENT_TCP_H
+
 #include "../common.h"
 #include "../common_TCP.h"
 
-int main(argc, argv)
-int argc;
-char *argv[];
+int client_tcp(char *req)
 {
 	int s; /* connected socket descriptor */
 	struct addrinfo hints, *res;
@@ -11,21 +12,12 @@ char *argv[];
 	struct sockaddr_in myaddr_in;		/* for local socket address */
 	struct sockaddr_in servaddr_in; /* for server socket address */
 	int addrlen, i, j, errcode;
-	/* This example uses TAM_BUFFER byte messages. */
-	char buf[TAM_BUFFER];
-
-	if (argc != 2)
-	{
-		fprintf(stderr, "Usage:  %s <remote host>\n", argv[0]);
-		exit(1);
-	}
 
 	/* Create the socket. */
 	s = socket(AF_INET, SOCK_STREAM, 0);
 	if (s == -1)
 	{
-		perror(argv[0]);
-		fprintf(stderr, "%s: unable to create socket\n", argv[0]);
+		fprintf(stderr, "client_tcp: unable to create socket\n");
 		exit(1);
 	}
 
@@ -41,13 +33,12 @@ char *argv[];
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	/* esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta*/
-	errcode = getaddrinfo(argv[1], NULL, &hints, &res);
+	errcode = getaddrinfo("localhost", NULL, &hints, &res);
 	if (errcode != 0)
 	{
 		/* Name was not found.  Return a
 		 * special value signifying the error. */
-		fprintf(stderr, "%s: No es posible resolver la IP de %s\n",
-						argv[0], argv[1]);
+		fprintf(stderr, "[client_tcp]: No es posible resolver la IP de localhost\n");
 		exit(1);
 	}
 	else
@@ -61,26 +52,28 @@ char *argv[];
 	servaddr_in.sin_port = htons(PUERTO);
 	if (connect(s, (const struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1)
 	{
-		perror(argv[0]);
-		fprintf(stderr, "%s: unable to connect to remote\n", argv[0]);
+		fprintf(stderr, "[client_tcp]: unable to connect to remote\n");
 		exit(1);
 	}
 	addrlen = sizeof(struct sockaddr_in);
 	if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1)
 	{
-		perror(argv[0]);
-		fprintf(stderr, "%s: unable to read socket address\n", argv[0]);
+		fprintf(stderr, "[client_tcp]: unable to read socket address\n");
 		exit(1);
 	}
 
 	/* Print out a startup message for the user. */
 	time(&timevar);
-	printf("Connected to %s on port %u at %s", argv[1], ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
+	printf("Connected to localhost on port %u at %s", ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
 
 	// Send request to server
-	char *request = "\r\n";
 	int response_size;
-	char *response = TCP_send_and_wait_server_request(s, request, &response_size);
+	char *response = TCP_send_and_wait_server_request(s, req, &response_size);
+	if (response == NULL)
+	{
+		fprintf(stderr, "[CLIENT TCP] Error receiving response\n");
+		exit(1);
+	}
 
 	// Add null terminator to response
 	response = realloc(response, response_size + 1);
@@ -92,3 +85,5 @@ char *argv[];
 	time(&timevar);
 	printf("All done at %s", (char *)ctime(&timevar));
 }
+
+#endif

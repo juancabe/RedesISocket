@@ -3,6 +3,7 @@
 
 #include "common.h"
 
+// Request MUST be a null terminated string
 char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
 {
 #ifdef DEBUG
