@@ -5,23 +5,31 @@
 
 char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
 {
+#ifdef DEBUG
   fprintf(stderr, "Sending request: %s\n", request);
+#endif
   if (send(s, request, strlen(request), 0) != strlen((request)))
   {
     return NULL;
   }
+#ifdef DEBUG
   fprintf(stderr, "Request sent\n");
+#endif
 
   // Receive response from server, until he closes connection
   const int step_len = 1024;
   int received_len, actual_len = 0;
   char *buffer = malloc(step_len);
   bool received = false;
+#ifdef DEBUG
   fprintf(stderr, "Receiving response\n");
+#endif
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
     received = true;
+#ifdef DEBUG
     fprintf(stderr, "Received %d bytes\n", received_len);
+#endif
     if (received_len < 0)
       return NULL;
 

@@ -31,7 +31,9 @@ bool check_crlf_format(char *buffer, int len)
 
   if (len < 2)
   {
+#ifdef DEBUG
     fprintf(stderr, "[CHECK CRLF] Buffer too short\n");
+#endif
     return false;
   }
 
@@ -41,7 +43,9 @@ bool check_crlf_format(char *buffer, int len)
     {
       if (i == 0 || buffer[i - 1] != '\r')
       {
+#ifdef DEBUG
         fprintf(stderr, "[CHECK CRLF] No \\r before \\n on str\n");
+#endif
         return false;
       }
       else
@@ -53,15 +57,19 @@ bool check_crlf_format(char *buffer, int len)
 
   if (!found)
   {
+#ifdef DEBUG
     fprintf(stderr, "[CHECK CRLF] No \\n found on str\n");
     fprintf(stderr, "%s\n", buffer);
+#endif
     return false;
   }
 
   if (buffer[len - 1] != '\n' || buffer[len - 2] != '\r')
   {
+#ifdef DEBUG
     fprintf(stderr, "[CHECK CRLF] Last two characters are not \\r\\n on str\n");
     fprintf(stderr, "%s\n", buffer);
+#endif
     return false;
   }
 
