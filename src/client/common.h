@@ -12,7 +12,7 @@
 #include <string.h>
 #include <time.h>
 
-#define PUERTO 17278
+#define PUERTO 19688
 #define TAM_BUFFER 10
 
 #endif
