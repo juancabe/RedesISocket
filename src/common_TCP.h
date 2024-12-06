@@ -41,21 +41,20 @@ static char *receive_one_message(char *hostname, int s)
   char *buffer = malloc(step_len);
   if (buffer == NULL)
   {
-    errout(hostname);
     return NULL;
   }
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
     if (received_len < 0)
-      errout(hostname);
+      return NULL;
 
     actual_len += received_len;
     char *tempPtr = buffer;
     buffer = realloc(buffer, actual_len + step_len);
     if (buffer == NULL)
     {
-      errout(hostname);
       free(tempPtr);
+      return NULL;
     }
 
     if (strstr(buffer, "\r\n") != NULL)
