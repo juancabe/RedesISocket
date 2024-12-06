@@ -117,8 +117,8 @@ static int UUTX_array_free(UUTX_array *array)
   return 0;
 }
 
-// If ut == NULL, it will check if the user is logged in, opening utmpx
-char *user_info(char *username, UUTX_user_utmpxs *ut_in)
+// If ut == NULL, user should not be logged in
+static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
 {
   char *lines = NULL;
   char *lines_ptr = NULL;

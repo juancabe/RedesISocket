@@ -77,7 +77,7 @@ char *argv[];
 	time(&timevar);
 	printf("Connected to %s on port %u at %s", argv[1], ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
 
-	// Send request to server (function must be shared between server and client)
+	// Send request to server
 	char *request = "\r\n";
 	int response_size;
 	char *response = TCP_send_and_wait_server_request(s, request, &response_size);
@@ -86,6 +86,7 @@ char *argv[];
 	response = realloc(response, response_size + 1);
 	response[response_size] = '\0';
 	printf("[CLIENT TCP] Message received: %s\n", response);
+	free(response);
 
 	/* Print message indicating completion of task. */
 	time(&timevar);

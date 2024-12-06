@@ -32,8 +32,15 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
     }
   }
 
+  if (received && check_crlf_format(buffer, actual_len) == false)
+  {
+    return NULL;
+  }
+
   *response_size = actual_len;
-  return received ? buffer : NULL;
+  return received ? (check_crlf_format(buffer, actual_len) ? buffer
+                                                           : NULL)
+                  : NULL;
 }
 
 // Receive one message, i.e. until \r\n
@@ -64,6 +71,11 @@ static char *receive_one_message(char *hostname, int s)
     {
       break;
     }
+  }
+
+  if (check_crlf_format(buffer, actual_len) == false)
+  {
+    return NULL;
   }
 
   return buffer;

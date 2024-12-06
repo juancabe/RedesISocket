@@ -25,4 +25,41 @@
 #define RETRIES 5
 #define TIMEOUT 5
 
+bool check_crlf_format(char *buffer, int len)
+{
+  bool found = false;
+
+  if (len < 2)
+  {
+    return false;
+  }
+
+  for (int i = 0; i < len; i++)
+  {
+    if (buffer[i] == '\n')
+    {
+      if (i == 0 || !(buffer[i - 1] != '\r'))
+      {
+        return false;
+      }
+      else
+      {
+        found = true;
+      }
+    }
+  }
+
+  if (!found)
+  {
+    return false;
+  }
+
+  if (buffer[len - 1] != '\n' || buffer[len - 2] != '\r')
+  {
+    return false;
+  }
+
+  return true;
+}
+
 #endif
