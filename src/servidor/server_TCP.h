@@ -93,6 +93,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     {
     case USERNAME:
       response = user_info(username, NULL);
+      // Add null terminator to response
       break;
     case ERROR:
       response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";

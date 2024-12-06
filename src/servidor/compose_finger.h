@@ -337,6 +337,15 @@ char *user_info(char *username, UUTX_user_utmpxs *ut_in)
     lines_ptr = lines + written_count;
   }
 
+  // Add null terminator
+  lines = realloc(lines, written_count + 1);
+  if (!lines)
+  {
+    // Handle allocation error
+    return NULL;
+  }
+  lines[written_count] = '\0';
+
   return lines;
 }
 
@@ -378,6 +387,21 @@ char *all_users_info()
       strcat(info, "\r\n");
       free(user_str);
     }
+  }
+
+  UUTX_array_free(&users_array);
+  // Add null terminator
+  if (info)
+  {
+    size_t len = strlen(info);
+    char *new_info = realloc(info, len + 1);
+    if (!new_info)
+    {
+      free(info);
+      return NULL;
+    }
+    info = new_info;
+    info[len] = '\0';
   }
 
   return info;
