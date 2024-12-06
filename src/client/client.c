@@ -13,13 +13,13 @@ int main(int argc, char **argv)
   strcpy(request, argv[2]);
   strcat(request, "\r\n");
 
-  if (strcmp(request, "TCP") == 0)
+  if (strcmp(argv[1], "TCP") == 0)
   {
-    client_tcp(argv[2]);
+    client_tcp(request);
   }
-  else if (strcmp(request, "UDP") == 0)
+  else if (strcmp(argv[1], "UDP") == 0)
   {
-    // TODO client_udp(argv[2]);
+    // TODO client_udp(request);
     {
       fprintf(stderr, "Error: TODO, no implementado\n");
       exit(1);
