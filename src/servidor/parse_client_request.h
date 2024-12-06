@@ -253,7 +253,7 @@ static int username_or_hostname(char *ptr, char **out_username, char **out_hostn
   }
 }
 
-int parse_client_request(char *in_buf, char **out_hostname, char **out_username)
+parse_client_request_return parse_client_request(char *in_buf, char **out_hostname, char **out_username)
 {
   char *ptr = in_buf;
   bool found;

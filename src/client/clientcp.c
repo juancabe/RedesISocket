@@ -79,14 +79,13 @@ char *argv[];
 
 	if (1)
 	{
-		char helloWorld[11] = "i0919688\r\n";
-		if (send(s, helloWorld, 11, 0) != 11)
-		{
-			fprintf(stderr, "%s: Connection aborted on error ", argv[0]);
-			fprintf(stderr, "on send number %d\n", i);
-			exit(1);
-		}
-		printf("[CLIENT TCP] Message sent: %s\n", helloWorld);
+		// Send request to server (function must be shared between server and client)
+		char *request = "juan\r\n";
+		int response_size;
+		char *response = TCP_send_and_wait_server_request(s, request, &response_size);
+
+		// Print server response
+		printf("[CLIENT TCP] Message received: %s\n", response);
 	}
 	else
 	{ // EXAMPLE

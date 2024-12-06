@@ -1,9 +1,10 @@
 #ifndef SERVER_TCP_H
 #define SERVER_TCP_H
 
-#include "common.h"
+#include "common_server.h"
 #include "common_tcp.h"
 #include "compose_finger.h"
+#include "parse_client_request.h"
 
 /*
  *				S E R V E R T C P
@@ -82,13 +83,35 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     }
 
     // Now we must parse client's message and respond to it
-    // TODO
+    char *username = NULL;
+    char *hostname = NULL;
+    parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
+    char *response = NULL;
 
     // Now we must compose the response, i.e. call composeFinger
-    // TODO
+    switch (ret)
+    {
+    case USERNAME:
+      *response = user_info(username, NULL);
+      break;
+    case ERROR:
+      *response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+      break;
+    case NO_USERNAME_NO_HOSTNAME:
+      *response = all_users_info();
+      break;
+    case HOSTNAME_REDIRECT:
+      // TODO
+      exit(-1);
+      break;
+    }
 
     // Now we must send the response to the client
-    // TODO
+    if (send(s, response, strlen(response), 0) != strlen(response))
+    // \0 no se envia, acaba con  \r\n
+    {
+      errout(hostname);
+    }
 
     // Now we must close the connection
     close(s);

@@ -280,12 +280,6 @@ char *user_info(char *username, UUTX_user_utmpxs *ut_in)
                                 ut_in->ut[i].ut_host[0] != '\0' ? ut_in->ut[i].ut_host : "local");
       lines_ptr = lines + written_count;
     }
-
-    /* TODO REMOVE
-    lines_ptr = lines + written_count;
-    written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "On since %s on %s from %s\r\n", login_time, ut->ut_line, ut->ut_host[0] != '\0' ? ut->ut_host : "local");
-    lines_ptr = lines + written_count;
-    */
   }
 
   char mail_path[512];

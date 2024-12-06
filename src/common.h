@@ -23,15 +23,4 @@
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
 
-extern int errno;
-
-/*
- *	This routine aborts the child process attending the client.
- */
-void errout(char *hostname)
-{
-  printf("Connection with %s aborted on error\n", hostname);
-  exit(1);
-}
-
 #endif

@@ -1,7 +1,7 @@
 #ifndef SERVER_UDP_H
 #define SERVER_UDP_H
 
-#include "common.h"
+#include "common_server.h"
 
 /*
  *				S E R V E R U D P
