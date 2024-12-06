@@ -386,6 +386,19 @@ char *all_users_info()
     }
   }
 
+  if (users_array.count == 0)
+  {
+    const char *no_users = "No one logged on.\r\n";
+    info = malloc(strlen(no_users) + 1);
+    if (!info)
+    {
+      UUTX_array_free(&users_array);
+      return NULL;
+    }
+    strcpy(info, no_users);
+    return info;
+  }
+
   UUTX_array_free(&users_array);
   // Add null terminator
   if (info)
