@@ -18,9 +18,11 @@
 #include <time.h>
 #include <unistd.h>
 
-#define PUERTO 17278
+#include "common_server.h"
+#include "../common.h"
+
 #define ADDRNOTFOUND 0xffffffff /* return address for unfound host */
-#define BUFFERSIZE 1024			/* maximum size of packets to be received */
+#define BUFFERSIZE 1024					/* maximum size of packets to be received */
 #define TAM_BUFFER 10
 #define MAXHOST 128
 
@@ -49,17 +51,17 @@ char *argv[];
 {
 
 	int s_TCP, s_UDP; /* connected socket descriptor */
-	int ls_TCP;		  /* listen socket descriptor */
+	int ls_TCP;				/* listen socket descriptor */
 
 	int cc; /* contains the number of bytes read */
 
 	struct sigaction sa = {.sa_handler = SIG_IGN}; /* used to ignore SIGCHLD */
 
-	struct sockaddr_in myaddr_in;	  /* for local socket address */
+	struct sockaddr_in myaddr_in;			/* for local socket address */
 	struct sockaddr_in clientaddr_in; /* for peer socket address */
 	int addrlen;
 
-	fd_set readmask;	 /* máscara para select */
+	fd_set readmask;		 /* máscara para select */
 	int numfds, s_mayor; /* número de descriptores */
 
 	char buffer[BUFFERSIZE]; /* buffer for packets to be read into */
@@ -233,21 +235,21 @@ char *argv[];
 					{
 					case -1: /* Can't fork, just exit. */
 						exit(1);
-					case 0:			   /* Child process comes here. */
+					case 0:					 /* Child process comes here. */
 						close(ls_TCP); /* Close the listen socket inherited from the daemon. */
 						serverTCP(s_TCP, clientaddr_in);
 						exit(0);
 					default: /* Daemon process comes here. */
-							 /* The daemon needs to remember
-							  * to close the new accept socket
-							  * after forking the child.  This
-							  * prevents the daemon from running
-							  * out of file descriptor space.  It
-							  * also means that when the server
-							  * closes the socket, that it will
-							  * allow the socket to be destroyed
-							  * since it will be the last close.
-							  */
+						/* The daemon needs to remember
+						 * to close the new accept socket
+						 * after forking the child.  This
+						 * prevents the daemon from running
+						 * out of file descriptor space.  It
+						 * also means that when the server
+						 * closes the socket, that it will
+						 * allow the socket to be destroyed
+						 * since it will be the last close.
+						 */
 						close(s_TCP);
 					}
 				} /* De TCP*/
@@ -263,7 +265,7 @@ char *argv[];
 					 * for a null character.
 					 */
 					cc = recvfrom(s_UDP, buffer, BUFFERSIZE - 1, 0,
-								  (struct sockaddr *)&clientaddr_in, &addrlen);
+												(struct sockaddr *)&clientaddr_in, &addrlen);
 					if (cc == -1)
 					{
 						perror(argv[0]);
@@ -301,16 +303,16 @@ char *argv[];
  */
 void serverTCP(int s, struct sockaddr_in clientaddr_in)
 {
-	int reqcnt = 0;			/* keeps count of number of requests */
-	char buf[TAM_BUFFER];	/* This example uses TAM_BUFFER byte messages. */
+	int reqcnt = 0;					/* keeps count of number of requests */
+	char buf[TAM_BUFFER];		/* This example uses TAM_BUFFER byte messages. */
 	char hostname[MAXHOST]; /* remote host's name string */
 
 	int len, len1, status;
 	struct hostent *hp; /* pointer to host info for remote host */
-	long timevar;		/* contains time returned by time() */
+	long timevar;				/* contains time returned by time() */
 
 	struct linger linger; /* allow a lingering, graceful close; */
-						  /* used when setting SO_LINGER */
+												/* used when setting SO_LINGER */
 
 	/* Look up the host information for the remote host
 	 * that we have connected with.  Its internet address
@@ -319,7 +321,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	 */
 
 	status = getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in),
-						 hostname, MAXHOST, NULL, 0, 0);
+											 hostname, MAXHOST, NULL, 0, 0);
 	if (status)
 	{
 		/* The information is unavailable for the remote
@@ -340,7 +342,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	 * that does require it.
 	 */
 	printf("Startup from %s port %u at %s",
-		   hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
+				 hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
 
 	/* Set the socket for a lingering, graceful close.
 	 * This will cause a final close of this socket to wait until all of the
@@ -349,7 +351,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	linger.l_onoff = 1;
 	linger.l_linger = 1;
 	if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger,
-				   sizeof(linger)) == -1)
+								 sizeof(linger)) == -1)
 	{
 		errout(hostname);
 	}
@@ -368,20 +370,20 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	{
 		if (len == -1)
 			errout(hostname); /* error from recv */
-							  /* The reason this while loop exists is that there
-							   * is a remote possibility of the above recv returning
-							   * less than TAM_BUFFER bytes.  This is because a recv returns
-							   * as soon as there is some data, and will not wait for
-							   * all of the requested data to arrive.  Since TAM_BUFFER bytes
-							   * is relatively small compared to the allowed TCP
-							   * packet sizes, a partial receive is unlikely.  If
-							   * this example had used 2048 bytes requests instead,
-							   * a partial receive would be far more likely.
-							   * This loop will keep receiving until all TAM_BUFFER bytes
-							   * have been received, thus guaranteeing that the
-							   * next recv at the top of the loop will start at
-							   * the begining of the next request.
-							   */
+												/* The reason this while loop exists is that there
+												 * is a remote possibility of the above recv returning
+												 * less than TAM_BUFFER bytes.  This is because a recv returns
+												 * as soon as there is some data, and will not wait for
+												 * all of the requested data to arrive.  Since TAM_BUFFER bytes
+												 * is relatively small compared to the allowed TCP
+												 * packet sizes, a partial receive is unlikely.  If
+												 * this example had used 2048 bytes requests instead,
+												 * a partial receive would be far more likely.
+												 * This loop will keep receiving until all TAM_BUFFER bytes
+												 * have been received, thus guaranteeing that the
+												 * next recv at the top of the loop will start at
+												 * the begining of the next request.
+												 */
 		while (len < TAM_BUFFER)
 		{
 			len1 = recv(s, &buf[len], TAM_BUFFER - len, 0);
@@ -421,7 +423,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 	 * that does require it.
 	 */
 	printf("Completed %s port %u, %d requests, at %s\n",
-		   hostname, ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
+				 hostname, ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
 }
 
 /*
@@ -446,7 +448,7 @@ void errout(char *hostname)
 void serverUDP(int s, char *buffer, struct sockaddr_in clientaddr_in)
 {
 	struct in_addr reqaddr; /* for requested host's address */
-	struct hostent *hp;		/* pointer to host info for requested host */
+	struct hostent *hp;			/* pointer to host info for requested host */
 	int nc, errcode;
 
 	struct addrinfo hints, *res;
@@ -474,7 +476,7 @@ void serverUDP(int s, char *buffer, struct sockaddr_in clientaddr_in)
 	freeaddrinfo(res);
 
 	nc = sendto(s, &reqaddr, sizeof(struct in_addr),
-				0, (struct sockaddr *)&clientaddr_in, addrlen);
+							0, (struct sockaddr *)&clientaddr_in, addrlen);
 	if (nc == -1)
 	{
 		perror("serverUDP");

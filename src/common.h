@@ -16,11 +16,13 @@
 #include <unistd.h>
 #include <stdbool.h>
 
-#define PUERTO 17278
+#define PUERTO 19688
 #define ADDRNOTFOUND 0xffffffff /* return address for unfound host */
 #define BUFFERSIZE 1024         /* maximum size of packets to be received */
 #define TAM_BUFFER 10
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
+#define RETRIES 5
+#define TIMEOUT 5
 
 #endif

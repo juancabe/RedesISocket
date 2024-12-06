@@ -1,7 +1,7 @@
 #ifndef COMMON_TCP_H
 #define COMMON_TCP_H
 
-#include "common.h"
+#include "../common.h"
 
 // Receive all DATA until client closes connection
 static char *receive_data_until_connection_closed(char *hostname, int s)

@@ -1,5 +1,5 @@
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef COMMON_CLIENT_H
+#define COMMON_CLIENT_H
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,7 +12,8 @@
 #include <string.h>
 #include <time.h>
 
-#define PUERTO 19688
+#include "../common.h"
+
 #define TAM_BUFFER 10
 
 #endif
