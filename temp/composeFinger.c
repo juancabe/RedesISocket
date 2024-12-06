@@ -26,5 +26,9 @@ int main()
     printf("%s", info);
     free(info);
   }
+  else
+  {
+    printf("No info\n");
+  }
   return 0;
 }
