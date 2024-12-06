@@ -39,7 +39,7 @@ bool check_crlf_format(char *buffer, int len)
   {
     if (buffer[i] == '\n')
     {
-      if (i == 0 || !(buffer[i - 1] != '\r'))
+      if (i == 0 || buffer[i - 1] != '\r')
       {
         fprintf(stderr, "[CHECK CRLF] No \\r before \\n on str\n");
         return false;
