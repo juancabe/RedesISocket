@@ -53,11 +53,8 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     {
       return -3;
     }
-    array->users[0].username = strdup(ut->ut_user);
-    {
-      return -3;
-    }
 
+    array->users[0].username = strdup(ut->ut_user);
     array->users[0].ut = ut;
     array->users[0].ut_count = 1;
     array->count = 1;
