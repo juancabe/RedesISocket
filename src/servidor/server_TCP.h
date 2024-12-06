@@ -92,7 +92,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     switch (ret)
     {
     case USERNAME:
-      response = user_info(username, NULL);
+      response = just_one_user_info(username);
       // Add null terminator to response
       break;
     case ERROR:

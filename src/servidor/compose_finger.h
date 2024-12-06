@@ -407,4 +407,62 @@ char *all_users_info()
   return info;
 }
 
+char *just_one_user_info(char *username)
+{
+  char *info = NULL;
+  struct utmpx *ut;
+  setutxent();
+  // User array
+  UUTX_array users_array;
+  UUTX_array_start(&users_array);
+
+  while ((ut = getutxent()) != NULL)
+  {
+    if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
+    {
+      UUTX_array_add(&users_array, ut);
+    }
+  }
+  endutxent();
+
+  for (int i = 0; i < users_array.count; i++)
+  {
+    char *user_str = user_info(users_array.users[i].username, &(users_array.users[i]));
+    if (user_str)
+    {
+      size_t current_len = info ? strlen(info) : 0;
+      size_t user_len = strlen(user_str);
+      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      if (!new_info)
+      {
+        free(info);
+        free(user_str);
+        UUTX_array_free(&users_array);
+        return NULL;
+      }
+      info = new_info;
+      strcpy(info + current_len, user_str);
+      strcat(info, "\r\n");
+      free(user_str);
+    }
+  }
+
+  UUTX_array_free(&users_array);
+  // Add null terminator
+  if (info)
+  {
+    size_t len = strlen(info);
+    char *new_info = realloc(info, len + 1);
+    if (!new_info)
+    {
+      free(info);
+      return NULL;
+    }
+    info = new_info;
+    info[len] = '\0';
+  }
+
+  return info;
+}
+
 #endif
