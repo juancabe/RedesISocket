@@ -1,4 +1,5 @@
 #include "client_tcp.h"
+#include "client_udp.h"
 
 int main(int argc, char **argv)
 {
@@ -20,11 +21,7 @@ int main(int argc, char **argv)
   }
   else if (strcmp(argv[1], "UDP") == 0)
   {
-    // TODO client_udp(request);
-    {
-      fprintf(stderr, "Error: TODO, no implementado\n");
-      exit(1);
-    }
+    client_udp(request);
   }
   else
   {

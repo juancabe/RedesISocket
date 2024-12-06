@@ -1,7 +1,7 @@
 #ifndef CLIENT_TCP_H
 #define CLIENT_TCP_H
 
-#include "../common.h"
+#include "common_client.h"
 #include "../common_TCP.h"
 
 int client_tcp(char *req)
@@ -33,7 +33,7 @@ int client_tcp(char *req)
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
 	/* esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta*/
-	errcode = getaddrinfo("localhost", NULL, &hints, &res);
+	errcode = getaddrinfo(HOSTNAME, NULL, &hints, &res);
 	if (errcode != 0)
 	{
 		/* Name was not found.  Return a

@@ -1,6 +1,6 @@
 #ifndef CLIENT_UDP_H
 #define CLIENT_UDP_H
-#include "../common.h"
+#include "common_client.h"
 
 extern int errno;
 
@@ -20,7 +20,6 @@ int client_udp(char *request)
 	int addrlen, n_retry;
 	struct sigaction vec;
 	struct addrinfo hints, *res;
-	char hostname[] = "localhost";
 
 	if (strlen(request) > TAM_BUFFER_OUT_UDP)
 	{
@@ -66,13 +65,12 @@ int client_udp(char *request)
 	servaddr_in.sin_family = AF_INET;
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
-	errcode = getaddrinfo(hostname, NULL, &hints, &res);
+	errcode = getaddrinfo(HOSTNAME, NULL, &hints, &res);
 	if (errcode != 0)
 	{
 		/* Name was not found.  Return a
 		 * special value signifying the error. */
-		fprintf(stderr, "[client_udp]: No es posible resolver la IP de %s\n",
-						hostname);
+		fprintf(stderr, "[client_udp]: No es posible resolver la IP de %s\n", HOSTNAME);
 		exit(1);
 	}
 	else
@@ -132,15 +130,15 @@ int client_udp(char *request)
 				alarm(0); // Cancel the alarm
 				/* Print out response. */
 				if (reqaddr.s_addr == ADDRNOTFOUND)
-					printf("[client_tcp] Host %s unknown by nameserver\n", hostname);
+					printf("[client_tcp] Host %s unknown by nameserver\n", HOSTNAME);
 				else
 				{
 					/* inet_ntop para interoperatividad con IPv6 */
 
 					/*
-					if (inet_ntop(AF_INET, &reqaddr, hostname, MAXHOST) == NULL)
+					if (inet_ntop(AF_INET, &reqaddr, HOSTNAME, MAXHOST) == NULL)
 						perror(" inet_ntop \n");
-					printf("Address for %s is %s\n", hostname, inet_ntoa(reqaddr));
+					printf("Address for %s is %s\n", HOSTNAME, inet_ntoa(reqaddr));
 					*/
 
 					printf("%s\n", req_response);

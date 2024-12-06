@@ -30,10 +30,9 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
 
   if (1)
   {
-    // T🍑D🍑 hacemos la recepción UDP dinámica? NO
 
-    char buffer[BUFFERSIZE];
-    ssize_t cc = recvfrom(s, buffer, BUFFERSIZE, 0,
+    char request[TAM_BUFFER_IN_UDP];
+    ssize_t cc = recvfrom(s, request, TAM_BUFFER_IN_UDP, 0,
                           (struct sockaddr *)&clientaddr_in, &addrlen);
     if (cc == -1)
     {
@@ -44,16 +43,16 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
     /* Make sure the message received is
      * null terminated.
      */
-    buffer[cc] = '\0';
+    request[cc] = '\0';
     FILE *outLog = fopen(LOG_FILENAME, "a+");
-    fprintf(outLog, "[UDP SERVER] RECEIVED\n%s\n", buffer);
+    fprintf(outLog, "[UDP SERVER] RECEIVED\n%s\n", request);
     fclose(outLog);
   }
   else
   {
     /* Treat the message as a string containing a hostname. */
     /* Esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
-    // errcode = getaddrinfo(buffer, NULL, &hints, &res); la comenté yo
+    // errcode = getaddrinfo(request, NULL, &hints, &res);
     if (errcode != 0)
     {
       /* Name was not found.  Return a
@@ -62,7 +61,7 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
     }
     else
     {
-      /* Copy address of host into the return buffer. */
+      /* Copy address of host into the return request. */
       reqaddr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
     }
     freeaddrinfo(res);
