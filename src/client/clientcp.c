@@ -92,6 +92,8 @@ char *argv[];
 		*/
 		// Print server response
 
+		printf("[CLIENT TCP] Response size: %d\n", response_size);
+
 		char *tempPtr = response;
 		do
 		{
