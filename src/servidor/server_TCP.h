@@ -70,7 +70,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger,
                  sizeof(linger)) == -1)
   {
-    errout(SERVER_NAME);
+    errout("First ERROUT");
   }
 
   if (1)
@@ -80,7 +80,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     char *buffer = receive_one_message(hostname, s);
     if (buffer == NULL)
     {
-      errout(SERVER_NAME);
+      errout("Second ERROUT");
     }
 
     // Now we must parse client's message and respond to it
@@ -112,7 +112,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     if (send(s, response, strlen(response), 0) != strlen(response))
     // \0 no se envia, acaba con  \r\n
     {
-      errout(SERVER_NAME);
+      errout("3rd ERROUT");
     }
 
     // Now we must close the connection
