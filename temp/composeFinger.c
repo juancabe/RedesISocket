@@ -20,7 +20,7 @@ int main()
 
   printf("FOR USER\n");
 
-  info = just_one_user_info("i0960231");
+  info = just_one_user_info("root");
   if (info)
   {
     printf("%s", info);
