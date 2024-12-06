@@ -445,6 +445,28 @@ char *just_one_user_info(char *username)
     }
   }
 
+  if (users_array.count == 0)
+  {
+    char *user_str = user_info(username, NULL);
+    if (user_str)
+    {
+      size_t current_len = info ? strlen(info) : 0;
+      size_t user_len = strlen(user_str);
+      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      if (!new_info)
+      {
+        free(info);
+        free(user_str);
+        UUTX_array_free(&users_array);
+        return NULL;
+      }
+      info = new_info;
+      strcpy(info + current_len, user_str);
+      strcat(info, "\r\n");
+      free(user_str);
+    }
+  }
+
   UUTX_array_free(&users_array);
   // Add null terminator
   if (info)
