@@ -92,13 +92,13 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     switch (ret)
     {
     case USERNAME:
-      *response = user_info(username, NULL);
+      response = user_info(username, NULL);
       break;
     case ERROR:
-      *response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
       break;
     case NO_USERNAME_NO_HOSTNAME:
-      *response = all_users_info();
+      response = all_users_info();
       break;
     case HOSTNAME_REDIRECT:
       // TODO
