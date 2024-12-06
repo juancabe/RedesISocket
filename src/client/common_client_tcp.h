@@ -1,5 +1,5 @@
-#ifndef COMMON_TCP_H
-#define COMMON_TCP_H
+#ifdef COMMON_CLIENT_TCP_H
+#define COMMON_CLIENT_TCP_H
 
 #include "../common.h"
 
