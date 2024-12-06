@@ -84,7 +84,9 @@ char *argv[];
 		char *request = "i0919688\r\n";
 		int response_size;
 		char *response = TCP_send_and_wait_server_request(s, request, &response_size);
-
+		// Add null terminator to response
+		response = realloc(response, response_size + 1);
+		response[response_size] = '\0';
 		// Print server response
 		printf("[CLIENT TCP] Message received: %s\n", response);
 	}
