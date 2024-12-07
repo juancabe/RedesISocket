@@ -1,4 +1,5 @@
 #include "../src/servidor/compose_finger.h"
+#include "../src/common.h"
 
 int main()
 {
@@ -7,23 +8,31 @@ int main()
   if (info)
   {
     printf("%s", info);
+    if (check_crlf_format(info, strlen(info)))
+    {
+      printf("CRLF format is correct\n");
+    }
+    else
+    {
+      printf("CRLF format is incorrect\n");
+    }
     free(info);
-  }
-
-  // Write to file finger.txt
-  FILE *finger_file = fopen("finger.txt", "w");
-  if (finger_file)
-  {
-    fprintf(finger_file, "%s", info);
-    fclose(finger_file);
   }
 
   printf("FOR USER\n");
 
-  info = just_one_user_info("root");
+  info = just_one_user_info("i0960231");
   if (info)
   {
     printf("%s", info);
+    if (check_crlf_format(info, strlen(info)))
+    {
+      printf("CRLF format is correct\n");
+    }
+    else
+    {
+      printf("CRLF format is incorrect\n");
+    }
     free(info);
   }
   else
