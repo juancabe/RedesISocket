@@ -109,7 +109,7 @@ int client_udp(char *request)
 			char req_response[TAM_BUFFER_IN_UDP];
 			ssize_t req_response_len = 0;
 			/* Wait for the reply to come in. */
-			if (req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen) == -1)
+			if ((req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen)) == -1)
 			{
 				if (errno == EINTR)
 				{
