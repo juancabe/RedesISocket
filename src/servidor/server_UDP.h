@@ -53,6 +53,10 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
     response = "Response doesn't fit in UDP packet\r\n";
   }
 
+#ifdef DEBUG
+  printf(("[serverUDP] sending response: %s\n"), response ? response : "NO RESPONSE");
+#endif
+
   // Now we must send the response to the client
   if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response))
   {
