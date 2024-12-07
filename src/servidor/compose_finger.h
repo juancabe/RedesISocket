@@ -15,6 +15,7 @@
 #include <utmp.h>
 
 #define MAX_LINE_LENGTH 516
+#define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
 typedef struct
 {
@@ -33,6 +34,17 @@ void UUTX_array_start(UUTX_array *array)
 {
   array->count = 0;
   array->users = NULL;
+}
+
+static char *safe_strdup(const char *src, size_t len)
+{
+  char *dest = malloc(len + 1);
+  if (dest)
+  {
+    strncpy(dest, src, len);
+    dest[len] = '\0';
+  }
+  return dest;
 }
 
 static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
@@ -54,7 +66,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
       return -3;
     }
 
-    array->users[0].username = strdup(ut->ut_user);
+    array->users[0].username = safe_strdup(ut->ut_user, UT_USER_SIZE);
     array->users[0].ut = ut;
     array->users[0].ut_count = 1;
     array->count = 1;
@@ -81,7 +93,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     {
       return -3;
     }
-    array->users[array->count].username = strdup(ut->ut_user);
+    array->users[array->count].username = safe_strdup(ut->ut_user, UT_USER_SIZE);
     if (array->users[array->count].username == NULL)
     {
       return -3;
