@@ -160,6 +160,7 @@ int main(int argc, char *argv[])
             serverUDP(s_UDP, clientaddr_in);
             exit(0);
           default: // Parent process comes here.
+            break;
           }
         }
       }
