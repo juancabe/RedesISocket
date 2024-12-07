@@ -19,13 +19,30 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   hints.ai_family = AF_INET;
 
   char buffer[TAM_BUFFER_IN_UDP];
-  ssize_t cc = recvfrom(s, buffer, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&clientaddr_in, &addrlen);
+  ssize_t cc = recvfrom(s, buffer, TAM_BUFFER_IN_UDP - 1, 0, (struct sockaddr *)&clientaddr_in, &addrlen);
+  buffer[cc] = '\0';
+
+#ifdef DEBUG
+  fprintf(stderr, "[serverUDP] Received message: %s\n", buffer);
+#endif
 
   // Now we must parse client's message and respond to it
   char *username = NULL;
   char *hostname = NULL;
   parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
   char *response = NULL;
+
+#ifdef DEBUG
+  printf("[serverUDP] ret: %d\n", ret);
+  if (username)
+    printf("[serverUDP] username: %s\n", username);
+  else
+    printf("[serverUDP] username: NULL\n");
+  if (hostname)
+    printf("[serverUDP] hostname: %s\n", hostname);
+  else
+    printf("[serverUDP] hostname: NULL\n");
+#endif
 
   // Now we must compose the response, i.e. call composeFinger
   switch (ret)
@@ -45,8 +62,6 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
     break;
   }
 
-  // Now we must check that the response fits in UDP packet
-  // TODO
   bool freed = false;
   if (response == NULL)
   {
