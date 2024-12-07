@@ -83,8 +83,10 @@ int main(int argc, char *argv[])
     exit(1);
 
   case 0: /* The child process (daemon) comes here. */
+#ifndef DEBUG
     fclose(stdin);
     fclose(stderr);
+#endif
 
     if (sigaction(SIGCHLD, &sa, NULL) == -1)
     {
