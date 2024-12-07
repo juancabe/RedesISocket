@@ -54,6 +54,10 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     return -1;
   }
 
+  char ut_user[UT_USER_SIZE + 1];
+  strncpy(ut_user, ut->ut_user, UT_USER_SIZE);
+  ut_user[UT_USER_SIZE] = '\0';
+
   if (array->users == NULL)
   {
     if (array->count != 0)
@@ -66,7 +70,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
       return -3;
     }
 
-    array->users[0].username = safe_strdup(ut->ut_user, UT_USER_SIZE);
+    array->users[0].username = safe_strdup(ut_user, UT_USER_SIZE);
     array->users[0].ut = ut;
     array->users[0].ut_count = 1;
     array->count = 1;
@@ -76,7 +80,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
   {
     for (int i = 0; i < array->count; i++)
     {
-      if (strcmp(array->users[i].username, ut->ut_user) == 0)
+      if (strcmp(array->users[i].username, ut_user) == 0)
       {
         array->users[i].ut_count++;
         array->users[i].ut = realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
@@ -93,7 +97,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     {
       return -3;
     }
-    array->users[array->count].username = safe_strdup(ut->ut_user, UT_USER_SIZE);
+    array->users[array->count].username = safe_strdup(ut_user, UT_USER_SIZE);
     if (array->users[array->count].username == NULL)
     {
       return -3;
@@ -191,7 +195,11 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
     setutxent();
     while ((ut = getutxent()) != NULL)
     {
-      if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
+      char ut_user[UT_USER_SIZE + 1];
+      strncpy(ut_user, ut->ut_user, UT_USER_SIZE);
+      ut_user[UT_USER_SIZE] = '\0';
+
+      if (ut->ut_type == USER_PROCESS && strcmp(ut_user, username) == 0)
       {
         logged_in = 1;
         break;
@@ -447,9 +455,12 @@ char *just_one_user_info(char *username)
 
   while ((ut = getutxent()) != NULL)
   {
-    if (ut->ut_type == USER_PROCESS && strncmp(ut->ut_user, username, UT_NAMESIZE) == 0)
-    {
+    char ut_user[UT_USER_SIZE + 1];
+    strncpy(ut_user, ut->ut_user, UT_USER_SIZE);
+    ut_user[UT_USER_SIZE] = '\0';
 
+    if (ut->ut_type == USER_PROCESS && strcmp(ut_user, username) == 0)
+    {
       int ret = UUTX_array_add(&users_array, ut);
     }
   }
