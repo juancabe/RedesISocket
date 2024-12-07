@@ -152,16 +152,7 @@ int main(int argc, char *argv[])
         }
         if (FD_ISSET(s_UDP, &readmask))
         {
-          switch (fork())
-          {
-          case -1: // Can't fork, just exit.
-            exit(1);
-          case 0: // Child process comes here.
-            serverUDP(s_UDP, clientaddr_in);
-            exit(0);
-          default: // Parent process comes here.
-            break;
-          }
+          serverUDP(s_UDP, clientaddr_in);
         }
       }
     }
