@@ -152,7 +152,16 @@ int main(int argc, char *argv[])
         }
         if (FD_ISSET(s_UDP, &readmask))
         {
-          serverUDP(s_UDP, clientaddr_in);
+          switch (fork())
+          {
+          case -1:
+            exit(1);
+          case 0:
+            serverUDP(s_UDP, clientaddr_in);
+            exit(0);
+          default:
+            break;
+          }
         }
       }
     }
