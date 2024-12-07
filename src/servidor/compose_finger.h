@@ -71,7 +71,12 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     }
 
     array->users[0].username = safe_strdup(ut_user, UT_USER_SIZE);
-    array->users[0].ut = ut;
+    array->users[0].ut = malloc(sizeof(struct utmpx));
+    if (array->users[0].ut == NULL)
+    {
+      return -3;
+    }
+    *(array->users[0].ut) = *ut;
     array->users[0].ut_count = 1;
     array->count = 1;
     return 0;
@@ -282,6 +287,15 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
       written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "Never logged in.\r\n");
     }
     lines_ptr = lines + written_count;
+
+    if (last_logout_host)
+    {
+      free(last_logout_host);
+    }
+    if (last_logout_line)
+    {
+      free(last_logout_line);
+    }
   }
   else
   {
