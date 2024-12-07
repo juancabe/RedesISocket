@@ -460,6 +460,7 @@ char *all_users_info()
 
 char *just_one_user_info(char *username)
 {
+  // TODO:Si no se recuerda el nombre de la cuenta podemos utilizar el nombre real del usuario (no diferencia mayúsculas de minúsculas)
   char *info = NULL;
   struct utmpx *ut;
   setutxent();
