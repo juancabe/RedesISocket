@@ -1,12 +1,20 @@
 CC = gcc
-CFLAGS = 
+CFLAGS = -O3
 #Descomentar la siguiente linea para olivo
 #LIBS = -lsocket -lnsl
 #Descomentar la siguiente linea para linux
 LIBS =
 
-composeFingerTestJuan: composeFinger.c
-	$(CC) $(CFLAGS) -O3 -o composeFingerTestJuan composeFinger.c $(LIBS) && echo "Compiled" && time ./composeFingerTestJuan i0919688
+run: all
+	./servidor &
+	./cliente TCP root
 
-composeFingerTestAll: composeFinger.c
-	$(CC) $(CFLAGS) -O3 -o composeFingerTestAll composeFinger.c $(LIBS) && echo "Compiled" && time ./composeFingerTestAll
+all: servidor cliente
+
+servidor: src/servidor/servidor.c
+	$(CC) $(CFLAGS) -o servidor src/servidor/servidor.c $(LIBS)
+
+cliente: src/cliente/cliente.c
+	$(CC) $(CFLAGS) -o cliente src/cliente/cliente.c $(LIBS)
+
+
