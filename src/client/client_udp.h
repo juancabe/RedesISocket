@@ -58,7 +58,7 @@ int client_udp(char *request)
 	/* Print out a startup message for the user. */
 	long timevar;
 	time(&timevar);
-	printf("Connected to %s on port %u at %s", argv[1], ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
+	printf("Connected to %s on port %u at %s", HOSTNAME, ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
 #endif
 
 	/* Set up the server address. */
