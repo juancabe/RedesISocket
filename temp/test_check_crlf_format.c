@@ -42,5 +42,6 @@ int main()
   test_crlf_format(8, "hola\n\r", false);
   test_crlf_format(9, "hola\n\r\n", false);
   test_crlf_format(10, "hola\r\n\n", false);
+  test_crlf_format(12, "Response doesn't fit in UDP packet\r\n", true);
   return 0;
 }
