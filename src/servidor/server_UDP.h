@@ -48,6 +48,11 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
 
   // Now we must check that the response fits in UDP packet
   // TODO
+  if (strlen(response) > TAM_BUFFER_OUT_UDP)
+  {
+    free(response);
+    response = "Response doesn't fit in UDP packet\r\n";
+  }
 
   // Now we must send the response to the client
   if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response))
