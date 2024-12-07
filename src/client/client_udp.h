@@ -107,8 +107,9 @@ int client_udp(char *request)
 
 			alarm(TIMEOUT);
 			char req_response[TAM_BUFFER_IN_UDP];
+			ssize_t req_response_len = 0;
 			/* Wait for the reply to come in. */
-			if (recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen) == -1)
+			if (req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen) == -1)
 			{
 				if (errno == EINTR)
 				{
@@ -128,20 +129,18 @@ int client_udp(char *request)
 			else
 			{
 				alarm(0); // Cancel the alarm
-				/* Print out response. */
-				if (reqaddr.s_addr == ADDRNOTFOUND)
-					printf("[client_tcp] Host %s unknown by nameserver\n", HOSTNAME);
+				if (check_crlf_format(req_response, req_response_len))
+				{
+					/* Print out response. */
+					char *with_null = malloc(req_response_len + 1);
+					strncpy(with_null, req_response, req_response_len);
+					with_null[req_response_len] = '\0';
+					printf("%s\n", with_null);
+					free(with_null);
+				}
 				else
 				{
-					/* inet_ntop para interoperatividad con IPv6 */
-
-					/*
-					if (inet_ntop(AF_INET, &reqaddr, HOSTNAME, MAXHOST) == NULL)
-						perror(" inet_ntop \n");
-					printf("Address for %s is %s\n", HOSTNAME, inet_ntoa(reqaddr));
-					*/
-
-					printf("%s\n", req_response);
+					printf("[client_udp] Error receiving response: format incorrect\n");
 				}
 				break;
 			}

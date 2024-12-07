@@ -3,16 +3,6 @@
 
 #include "common_server.h"
 
-/*
- *				S E R V E R U D P
- *
- *	This is the actual server routine that the daemon forks to
- *	handle each individual connection.  Its purpose is to receive
- *	the request packets from the remote client, process them,
- *	and return the results to the client.  It will also write some
- *	logging information to stdout.
- *
- */
 void serverUDP(int s, struct sockaddr_in clientaddr_in)
 {
   struct in_addr reqaddr; /* for requested host's address */
@@ -28,53 +18,44 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
 
-  if (1)
-  {
+  char buffer[TAM_BUFFER_IN_UDP];
+  ssize_t cc = recvfrom(s, buffer, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&clientaddr_in, &addrlen);
 
-    char request[TAM_BUFFER_IN_UDP];
-    ssize_t cc = recvfrom(s, request, TAM_BUFFER_IN_UDP, 0,
-                          (struct sockaddr *)&clientaddr_in, &addrlen);
-    if (cc == -1)
-    {
-      perror("[UDP RECEIVE] Error");
-      printf("%d: recvfrom error\n", s);
-      exit(1);
-    }
-    /* Make sure the message received is
-     * null terminated.
-     */
-    request[cc] = '\0';
-    FILE *outLog = fopen(LOG_FILENAME, "a+");
-    fprintf(outLog, "[UDP SERVER] RECEIVED\n%s\n", request);
-    fclose(outLog);
-  }
-  else
-  {
-    /* Treat the message as a string containing a hostname. */
-    /* Esta funci�n es la recomendada para la compatibilidad con IPv6 gethostbyname queda obsoleta. */
-    // errcode = getaddrinfo(request, NULL, &hints, &res);
-    if (errcode != 0)
-    {
-      /* Name was not found.  Return a
-       * special value signifying the error. */
-      reqaddr.s_addr = ADDRNOTFOUND;
-    }
-    else
-    {
-      /* Copy address of host into the return request. */
-      reqaddr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
-    }
-    freeaddrinfo(res);
+  // Now we must parse client's message and respond to it
+  char *username = NULL;
+  char *hostname = NULL;
+  parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
+  char *response = NULL;
 
-    nc = sendto(s, &reqaddr, sizeof(struct in_addr),
-                0, (struct sockaddr *)&clientaddr_in, addrlen);
-    if (nc == -1)
-    {
-      perror("serverUDP");
-      printf("%s: sendto error\n", "serverUDP");
-      return;
-    }
+  // Now we must compose the response, i.e. call composeFinger
+  switch (ret)
+  {
+  case USERNAME:
+    response = just_one_user_info(username);
+    // Add null terminator to response
+    break;
+  case ERROR:
+    response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    break;
+  case NO_USERNAME_NO_HOSTNAME:
+    response = all_users_info();
+    break;
+  case HOSTNAME_REDIRECT:
+    // TODO
+    exit(-1);
+    break;
   }
+
+  // Now we must check that the response fits in UDP packet
+  // TODO
+
+  // Now we must send the response to the client
+  if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response))
+  {
+    errout("3rd ERROUT");
+  }
+
+  // ALL Done
 }
 
 #endif
