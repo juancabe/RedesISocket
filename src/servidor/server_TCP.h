@@ -9,8 +9,8 @@
 void serverTCP(int s, struct sockaddr_in clientaddr_in)
 {
   char SERVER_NAME[] = "serverTCP";
-  int reqcnt = 0;         /* keeps count of number of requests */
-  char hostname[MAXHOST]; /* remote host's name string */
+  int reqcnt = 0;                /* keeps count of number of requests */
+  char remote_hostname[MAXHOST]; /* remote host's name string */
 
   struct hostent *hp; /* pointer to host info for remote host */
 
@@ -18,8 +18,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
                         /* used when setting SO_LINGER */
 
   int status = getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in),
-                           hostname, MAXHOST, NULL, 0, 0);
-  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), hostname, MAXHOST) == NULL))
+                           remote_hostname, MAXHOST, NULL, 0, 0);
+  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname, MAXHOST) == NULL))
   {
     perror(" inet_ntop \n");
   }
@@ -28,7 +28,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   long timevar; /* contains time returned by time() */
   time(&timevar);
   printf("Startup from %s port %u at %s",
-         hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
+         remote_hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
 #endif
 
   /* Set the socket for a lingering, graceful close.
@@ -44,7 +44,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   }
 
   // First message should be one line
-  char *buffer = receive_one_message(hostname, s);
+  char *buffer = receive_one_message(remote_hostname, s);
   reqcnt++;
   if (buffer == NULL)
   {
