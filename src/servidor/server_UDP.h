@@ -41,7 +41,7 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
     break;
   case HOSTNAME_REDIRECT:
     // TODO
-    exit(-1);
+    errout("[server_TCP] NOT IMPLEMENTED HOSTNAME_REDIRECT\n");
     break;
   }
 

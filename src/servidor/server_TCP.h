@@ -72,6 +72,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     break;
   case HOSTNAME_REDIRECT:
     // TODO
+    printf("[server_TCP] NOT IMPLEMENTED HOSTNAME_REDIRECT\n");
     exit(-1);
     break;
   }

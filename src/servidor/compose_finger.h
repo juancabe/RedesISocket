@@ -202,10 +202,17 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
     {
       while (fread(&wtmp_record, sizeof(struct utmp), 1, wtmp_file) == 1)
       {
+#ifdef __APPLE__
+        if (strncmp(wtmp_record.ut_name, username, UT_NAMESIZE) == 0)
+        {
+          has_logged_in = true;
+          if (wtmp_record.ut_line == USER_PROCESS || wtmp_record.ut_line == LOGIN_PROCESS)
+#else
         if (strncmp(wtmp_record.ut_user, username, UT_NAMESIZE) == 0)
         {
           has_logged_in = true;
           if (wtmp_record.ut_type == USER_PROCESS || wtmp_record.ut_type == LOGIN_PROCESS)
+#endif
           {
             last_logout_time = wtmp_record.ut_time;
             last_logout_host = malloc(UT_HOSTSIZE + 1);
