@@ -21,8 +21,6 @@ int main(int argc, char *argv[])
   fd_set readmask;     /* máscara para select */
   int numfds, s_mayor; /* número de descriptores */
 
-  char buffer[BUFFERSIZE]; /* buffer for packets to be read into */
-
   struct sigaction vec;
 
   /* Create the listen socket. */
