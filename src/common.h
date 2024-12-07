@@ -25,6 +25,8 @@
 #define RETRIES 5
 #define TIMEOUT 5
 
+#define DEBUG
+
 bool check_crlf_format(char *buffer, int len)
 {
   bool found = false;

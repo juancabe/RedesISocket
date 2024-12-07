@@ -32,7 +32,6 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   {
   case USERNAME:
     response = just_one_user_info(username);
-    // Add null terminator to response
     break;
   case ERROR:
     response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
