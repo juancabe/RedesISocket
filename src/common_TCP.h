@@ -17,6 +17,14 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
   fprintf(stderr, "Request sent\n");
 #endif
 
+  // Close sending channel
+  /* TODO: Do this to avoid server waiting for more data and allow him to receive dynamically
+  if (shutdown(s, SHUT_WR) == -1)
+  {
+    return NULL;
+  }
+  */
+
   // Receive response from server, until he closes connection
   const int step_len = 1024;
   int received_len, actual_len = 0;
@@ -25,8 +33,10 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
 #ifdef DEBUG
   fprintf(stderr, "Receiving response\n");
 #endif
+  // Receive until server closes connection
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
+    // TODO timeout
     received = true;
 #ifdef DEBUG
     fprintf(stderr, "Received %d bytes\n", received_len);
@@ -67,6 +77,7 @@ static char *receive_one_message(char *hostname, int s)
   }
   while (received_len = recv(s, buffer + actual_len, step_len, 0))
   {
+    // TODO timeout
     if (received_len < 0)
       return NULL;
 
