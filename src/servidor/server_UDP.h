@@ -51,7 +51,6 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   if (response == NULL)
   {
     freed = true;
-    free(response);
     response = "No response\r\n";
   }
   else if (strlen(response) > TAM_BUFFER_OUT_UDP)
