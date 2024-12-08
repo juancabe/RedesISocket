@@ -2,6 +2,10 @@
 #define SERVER_UDP_H
 
 #include "common_server.h"
+#include "compose_finger.h"
+#include "parse_client_request.h"
+#include "../cliente/client_udp.h"
+#include <sys/_types/_socklen_t.h>
 
 void serverUDP(int s, struct sockaddr_in clientaddr_in)
 {
@@ -11,7 +15,7 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
 
   struct addrinfo hints, *res;
 
-  int addrlen;
+  socklen_t addrlen;
 
   addrlen = sizeof(struct sockaddr_in);
 
@@ -30,7 +34,9 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   char *username = NULL;
   char *hostname = NULL;
   parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
+  bool username_malloced = true;
   char *response = NULL;
+  bool response_malloced = false;
 
 #ifdef DEBUG
   printf("[serverUDP] ret: %d\n", ret);
@@ -48,30 +54,55 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   switch (ret)
   {
   case USERNAME:
-    response = just_one_user_info(username);
+    if (username == NULL)
+    {
+      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+      username_malloced = false;
+    }
+    else
+    {
+      response = just_one_user_info(username);
+      response_malloced = true;
+    }
     break;
   case ERROR:
     response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     break;
   case NO_USERNAME_NO_HOSTNAME:
     response = all_users_info();
+    response_malloced = true;
     break;
   case HOSTNAME_REDIRECT:
-    // TODO
-    errout("[server_TCP] NOT IMPLEMENTED HOSTNAME_REDIRECT\n");
+    if (username == NULL) // Username not provided by client
+    {
+      username = "\r\n";
+      username_malloced = false;
+    }
+    if (hostname == NULL)
+    {
+      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    }
+    else
+    {
+      response = client_udp(username, hostname); // Username is the new request
+      response_malloced = true;
+    }
+    break;
+  default:
+    response = "Unknown error\r\n";
     break;
   }
 
-  bool freed = false;
   if (response == NULL)
   {
-    freed = true;
-    response = "No response\r\n";
+    response = "Error during generating correct response\r\n";
+    response_malloced = false;
   }
   else if (strlen(response) > TAM_BUFFER_OUT_UDP)
   {
-    freed = true;
-    free(response);
+    if (response_malloced)
+      free(response);
+    response_malloced = false;
     response = "Response doesn't fit in UDP packet\r\n";
   }
 
@@ -86,18 +117,12 @@ void serverUDP(int s, struct sockaddr_in clientaddr_in)
   }
 
   // Free memory
-  if (!freed && response)
-  {
+  if (response_malloced && response)
     free(response);
-  }
-  if (username)
-  {
+  if (username_malloced && username)
     free(username);
-  }
   if (hostname)
-  {
     free(hostname);
-  }
   // ALL Done
 }
 

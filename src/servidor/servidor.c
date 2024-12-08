@@ -11,12 +11,11 @@ int main(int argc, char *argv[])
   int ls_TCP;       /* listen socket descriptor */
 
   int cc; /* contains the number of bytes read */
-
   struct sigaction sa = {.sa_handler = SIG_IGN}; /* used to ignore SIGCHLD */
 
   struct sockaddr_in myaddr_in;     /* for local socket address */
   struct sockaddr_in clientaddr_in; /* for peer socket address */
-  int addrlen;
+  socklen_t addrlen;
 
   fd_set readmask;     /* máscara para select */
   int numfds, s_mayor; /* número de descriptores */

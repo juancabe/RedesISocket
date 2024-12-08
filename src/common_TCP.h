@@ -26,13 +26,13 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   // Receive response from server, until he closes connection
   const int step_len = 1024;
   int received_len, actual_len = 0;
-  char *buffer = malloc(step_len);
+  char *buffer = (char *)malloc(step_len);
   bool received = false;
 #ifdef DEBUG
   fprintf(stderr, "Receiving response\n");
 #endif
   // Receive until server closes connection
-  while (received_len = recv(s, buffer + actual_len, step_len, 0))
+  while ((received_len = recv(s, buffer + actual_len, step_len, 0)))
   {
     // TODO timeout
     received = true;
@@ -44,7 +44,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
 
     actual_len += received_len;
     char *tempPtr = buffer;
-    buffer = realloc(buffer, actual_len + step_len);
+    buffer = (char *) realloc(buffer, actual_len + step_len);
     if (buffer == NULL)
     {
       free(tempPtr);
@@ -63,12 +63,12 @@ static char *receive_one_message(char *hostname, int s)
 {
   const int step_len = 1024;
   int received_len, actual_len = 0;
-  char *buffer = malloc(step_len);
+  char *buffer = (char *) malloc(step_len);
   if (buffer == NULL)
   {
     return NULL;
   }
-  while (received_len = recv(s, buffer + actual_len, step_len, 0))
+  while ((received_len = recv(s, buffer + actual_len, step_len, 0)))
   {
     // TODO timeout
     if (received_len < 0)
@@ -76,7 +76,7 @@ static char *receive_one_message(char *hostname, int s)
 
     actual_len += received_len;
     char *tempPtr = buffer;
-    buffer = realloc(buffer, actual_len + step_len);
+    buffer = (char *) realloc(buffer, actual_len + step_len);
     if (buffer == NULL)
     {
       free(tempPtr);

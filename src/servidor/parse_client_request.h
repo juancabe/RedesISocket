@@ -52,7 +52,7 @@ static bool check_at_whole_str(char *ptr)
 }
 
 // Expecting a hostname ex: @hostname
-static int STATE_hostname(
+static parse_client_request_return STATE_hostname(
     char *ptr,
     char **out_username,
     char **out_hostname,
@@ -101,7 +101,7 @@ static int STATE_hostname(
 #ifdef DEBUG
     printf("[STATE_hostname] CRLF -> ");
 #endif
-    *out_hostname = malloc(ptr - hostname_start + 1);
+    *out_hostname = (char *) malloc(ptr - hostname_start + 1);
     if (*out_hostname == NULL)
       return ERROR;
     strncpy(*out_hostname, hostname_start, ptr - hostname_start);
@@ -133,7 +133,7 @@ static int STATE_hostname(
 }
 
 // Expecting a username ex: i0960231
-static int STATE_username(
+static parse_client_request_return STATE_username(
     char *ptr,
     char **out_username,
     char **out_hostname,
@@ -176,7 +176,7 @@ static int STATE_username(
 #ifdef DEBUG
     printf("[STATE_username] CRLF -> ");
 #endif
-    *out_username = malloc(ptr - username_start + 1);
+    *out_username = (char *) malloc(ptr - username_start + 1);
     if (*out_username == NULL)
       return ERROR;
     strncpy(*out_username, username_start, ptr - username_start);
@@ -202,7 +202,7 @@ static int STATE_username(
 #ifdef DEBUG
     printf("[STATE_username] @ -> ");
 #endif
-    *out_username = malloc(ptr - username_start + 1);
+    *out_username = (char *) malloc(ptr - username_start + 1);
     if (*out_username == NULL)
       return ERROR;
     strncpy(*out_username, username_start, ptr - username_start);
@@ -230,7 +230,7 @@ static int STATE_username(
   }
 }
 
-static int username_or_hostname(char *ptr, char **out_username, char **out_hostname, bool *username_set_out, bool *hostname_set_out, bool must_have_hostname)
+static parse_client_request_return username_or_hostname(char *ptr, char **out_username, char **out_hostname, bool *username_set_out, bool *hostname_set_out, bool must_have_hostname)
 {
   if (check_CRLF(ptr) || check_end(ptr))
   {
@@ -257,7 +257,6 @@ static int username_or_hostname(char *ptr, char **out_username, char **out_hostn
 parse_client_request_return parse_client_request(char *in_buf, char **out_hostname, char **out_username)
 {
   char *ptr = in_buf;
-  bool found;
   bool username_set_out = false;
   bool hostname_set_out = false;
   bool must_have_hostname = false;

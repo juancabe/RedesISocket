@@ -1,7 +1,7 @@
 CC = gcc
 CCApple = clang
 CFLAGS = -O3
-CFLAGSApple = -x c -DAPPLE
+CFLAGSApple = -x c -O3 -DDEBUG
 #Descomentar la siguiente linea para olivo
 #LIBS = -lsocket -lnsl
 #Descomentar la siguiente linea para linux
@@ -10,7 +10,7 @@ SPATH = src/servidor/
 CPATH = src/cliente/
 SERVIDOR_DEPS = $(SPATH)servidor.c $(SPATH)common_server.h $(SPATH)compose_finger.h $(SPATH)parse_client_request.h $(SPATH)server_TCP.h $(SPATH)server_UDP.h
 
-CLIENTE_DEPS = $(CPATH)cliente.c $(CPATH)client_tcp.h $(CPATH)client_udp.h $(CPATH)common_client.h $(CPATH)common_client_tcp.h src/common.h src/common_TCP.h
+CLIENTE_DEPS = $(CPATH)cliente.c $(CPATH)client_tcp.h $(CPATH)client_udp.h $(CPATH)common_client.h src/common.h src/common_TCP.h
 
 
 run: all

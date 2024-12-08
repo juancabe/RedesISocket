@@ -17,7 +17,7 @@
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
-#ifndef APPLE
+#ifndef __APPLE__
 
 typedef struct
 {
@@ -40,7 +40,7 @@ void UUTX_array_start(UUTX_array *array)
 
 static char *safe_strdup(const char *src, size_t len)
 {
-  char *dest = malloc(len + 1);
+  char *dest = (char *) malloc(len + 1);
   if (dest)
   {
     strncpy(dest, src, len);
@@ -66,14 +66,14 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     {
       return -2;
     }
-    array->users = malloc(sizeof(UUTX_user_utmpxs));
+    array->users = (UUTX_user_utmpxs *) malloc(sizeof(UUTX_user_utmpxs));
     if (array->users == NULL)
     {
       return -3;
     }
 
     array->users[0].username = safe_strdup(ut_user, UT_USER_SIZE);
-    array->users[0].ut = malloc(sizeof(struct utmpx));
+    array->users[0].ut = (utmpx *) malloc(sizeof(struct utmpx));
     if (array->users[0].ut == NULL)
     {
       return -3;
@@ -90,7 +90,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
       if (strcmp(array->users[i].username, ut_user) == 0)
       {
         array->users[i].ut_count++;
-        array->users[i].ut = realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
+        array->users[i].ut = (utmpx *) realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
         if (array->users[i].ut == NULL)
         {
           return -3;
@@ -99,7 +99,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
         return 0;
       }
     }
-    array->users = realloc(array->users, (array->count + 1) * sizeof(UUTX_user_utmpxs));
+    array->users = (UUTX_user_utmpxs *) realloc(array->users, (array->count + 1) * sizeof(UUTX_user_utmpxs));
     if (array->users == NULL)
     {
       return -3;
@@ -109,7 +109,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut)
     {
       return -3;
     }
-    array->users[array->count].ut = malloc(sizeof(struct utmpx));
+    array->users[array->count].ut = (utmpx *) malloc(sizeof(struct utmpx));
     if (array->users[array->count].ut == NULL)
     {
       return -3;
@@ -151,7 +151,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   if (!pwd)
   {
     char user_not_found[] = "User not found.";
-    lines = malloc(strlen(user_not_found) + 1);
+    lines = (char *) malloc(strlen(user_not_found) + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -175,7 +175,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   }
 
   // First allocation
-  lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+  lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
   if (!lines)
   {
     // Handle allocation error
@@ -185,7 +185,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "Login: %s\t\t\tName: %s\r\n", pwd->pw_name, name);
   lines_ptr = lines + written_count;
 
-  lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+  lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
   if (!lines)
   {
     // Handle allocation error
@@ -235,7 +235,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
           if (wtmp_record.ut_type == USER_PROCESS || wtmp_record.ut_type == LOGIN_PROCESS)
           {
             last_logout_time = wtmp_record.ut_time;
-            last_logout_host = malloc(UT_HOSTSIZE + 1);
+            last_logout_host = (char *) malloc(UT_HOSTSIZE + 1);
             if (last_logout_host)
             {
               strncpy(last_logout_host, wtmp_record.ut_host, UT_HOSTSIZE);
@@ -246,7 +246,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
               // Handle allocation error
               return NULL;
             }
-            last_logout_line = malloc(UT_LINESIZE + 1);
+            last_logout_line = (char *) malloc(UT_LINESIZE + 1);
             if (last_logout_line)
             {
               strncpy(last_logout_line, wtmp_record.ut_line, UT_LINESIZE);
@@ -263,7 +263,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
       fclose(wtmp_file);
     }
 
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -296,7 +296,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   {
     char login_time[64];
     strftime(login_time, sizeof(login_time), "%a %b %d %H:%M (%Z)", localtime((time_t *)&ut->ut_tv.tv_sec));
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -320,7 +320,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   struct stat mail_stat;
   if (stat(mail_path, &mail_stat) == 0 && mail_stat.st_size > 0)
   {
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -332,7 +332,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   }
   else
   {
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -347,7 +347,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   snprintf(plan_path, sizeof(plan_path), "%s/.plan", pwd->pw_dir);
   if (access(plan_path, F_OK) == 0)
   {
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -359,7 +359,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   }
   else
   {
-    lines = realloc(lines, written_count + MAX_LINE_LENGTH + 1);
+    lines = (char*) realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines)
     {
       // Handle allocation error
@@ -371,7 +371,7 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
   }
 
   // Add null terminator
-  lines = realloc(lines, written_count + 1);
+  lines = (char*) realloc(lines, written_count + 1);
   if (!lines)
   {
     // Handle allocation error
@@ -407,7 +407,7 @@ char *all_users_info()
     {
       size_t current_len = info ? strlen(info) : 0;
       size_t user_len = strlen(user_str);
-      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      char *new_info = (char*) realloc(info, current_len + user_len + 3); // +3 for \r\n\0
       if (!new_info)
       {
         free(info);
@@ -425,7 +425,7 @@ char *all_users_info()
   if (users_array.count == 0)
   {
     const char *no_users = "No one logged on.\r\n";
-    info = malloc(strlen(no_users) + 1);
+    info = (char *)malloc(strlen(no_users) + 1);
     if (!info)
     {
       UUTX_array_free(&users_array);
@@ -440,7 +440,7 @@ char *all_users_info()
   if (info)
   {
     size_t len = strlen(info);
-    char *new_info = realloc(info, len + 1);
+    char *new_info = (char*) realloc(info, len + 1);
     if (!new_info)
     {
       free(info);
@@ -483,7 +483,7 @@ char *just_one_user_info(char *username)
     {
       size_t current_len = info ? strlen(info) : 0;
       size_t user_len = strlen(user_str);
-      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      char *new_info = (char*) realloc(info, current_len + user_len + 3); // +3 for \r\n\0
       if (!new_info)
       {
         free(info);
@@ -505,7 +505,7 @@ char *just_one_user_info(char *username)
     {
       size_t current_len = info ? strlen(info) : 0;
       size_t user_len = strlen(user_str);
-      char *new_info = realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      char *new_info = (char*) realloc(info, current_len + user_len + 3); // +3 for \r\n\0
       if (!new_info)
       {
         free(info);
@@ -525,7 +525,7 @@ char *just_one_user_info(char *username)
   if (info)
   {
     size_t len = strlen(info);
-    char *new_info = realloc(info, len + 1);
+    char *new_info = (char*) realloc(info, len + 1);
     if (!new_info)
     {
       free(info);
@@ -545,7 +545,7 @@ const char *RESPONSE = "NOT IMPLEMENTED\r\n";
 
 char *all_users_info()
 {
-  char *info = malloc(strlen(RESPONSE) + 1);
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
   if (!info)
   {
     return NULL;
@@ -556,7 +556,7 @@ char *all_users_info()
 
 char *just_one_user_info(char *username)
 {
-  char *info = malloc(strlen(RESPONSE) + 1);
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
   if (!info)
   {
     return NULL;

@@ -15,17 +15,31 @@ int main(int argc, char **argv)
   strcpy(request, argc == 3 ? argv[2] : "");
   strcat(request, "\r\n");
 
+  char *response = NULL;
+
   if (strcmp(argv[1], "TCP") == 0)
   {
-    client_tcp(request);
+    response = client_tcp(request, "localhost");
   }
   else if (strcmp(argv[1], "UDP") == 0)
   {
-    client_udp(request);
+    response = client_udp(request, "localhost");
   }
   else
   {
     fprintf(stderr, "Protocolo no soportado: %s\n", argv[1]);
     exit(1);
   }
+
+  if (response == NULL)
+  {
+    fprintf(stderr, "Error al recibir respuesta\n");
+    exit(1);
+  }
+  else
+  {
+    printf("%s", response);
+  }
+
+  return 0;
 }
