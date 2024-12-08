@@ -135,7 +135,7 @@ int client_udp(char *request)
 					char *with_null = malloc(req_response_len + 1);
 					strncpy(with_null, req_response, req_response_len);
 					with_null[req_response_len] = '\0';
-					// printf("%s\n", with_null);
+					printf("%s", with_null);
 					free(with_null);
 				}
 				else

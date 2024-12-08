@@ -17,6 +17,8 @@
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
+#ifndef APPLE
+
 typedef struct
 {
   char *username;
@@ -227,17 +229,10 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in)
     {
       while (fread(&wtmp_record, sizeof(struct utmp), 1, wtmp_file) == 1)
       {
-#ifdef __APPLE__
-        if (strncmp(wtmp_record.ut_name, username, UT_NAMESIZE) == 0)
-        {
-          has_logged_in = true;
-          if (wtmp_record.ut_line == USER_PROCESS || wtmp_record.ut_line == LOGIN_PROCESS)
-#else
         if (strncmp(wtmp_record.ut_user, username, UT_NAMESIZE) == 0)
         {
           has_logged_in = true;
           if (wtmp_record.ut_type == USER_PROCESS || wtmp_record.ut_type == LOGIN_PROCESS)
-#endif
           {
             last_logout_time = wtmp_record.ut_time;
             last_logout_host = malloc(UT_HOSTSIZE + 1);
@@ -542,5 +537,34 @@ char *just_one_user_info(char *username)
 
   return info;
 }
+
+#else
+
+// Apple not implemented, return "NOT IMPLEMENTED\r\n"
+const char *RESPONSE = "NOT IMPLEMENTED\r\n";
+
+char *all_users_info()
+{
+  char *info = malloc(strlen(RESPONSE) + 1);
+  if (!info)
+  {
+    return NULL;
+  }
+  strcpy(info, RESPONSE);
+  return info;
+}
+
+char *just_one_user_info(char *username)
+{
+  char *info = malloc(strlen(RESPONSE) + 1);
+  if (!info)
+  {
+    return NULL;
+  }
+  strcpy(info, RESPONSE);
+  return info;
+}
+
+#endif
 
 #endif

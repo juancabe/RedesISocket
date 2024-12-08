@@ -80,7 +80,7 @@ int client_tcp(char *req)
 	// Add null terminator to response
 	response = realloc(response, response_size + 1);
 	response[response_size] = '\0';
-	printf("%s\n", response);
+	printf("%s", response);
 	free(response);
 
 	/* Print message indicating completion of task. */
