@@ -4,7 +4,7 @@
 #include "common.h"
 
 // Request MUST be a null terminated string
-char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
+char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *response_size)
 {
 #ifdef DEBUG
   fprintf(stderr, "Sending request: %s\n", request);
@@ -16,14 +16,12 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
 #ifdef DEBUG
   fprintf(stderr, "Request sent\n");
 #endif
-
-  // Close sending channel
-  /* TODO: Do this to avoid server waiting for more data and allow him to receive dynamically
+  // Do this in order to gracefully close connection later
+  // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   if (shutdown(s, SHUT_WR) == -1)
   {
     return NULL;
   }
-  */
 
   // Receive response from server, until he closes connection
   const int step_len = 1024;
@@ -52,11 +50,6 @@ char *TCP_send_and_wait_server_request(int s, char *request, int *response_size)
       free(tempPtr);
       return NULL;
     }
-  }
-
-  if (received && check_crlf_format(buffer, actual_len) == false)
-  {
-    return NULL;
   }
 
   *response_size = actual_len;

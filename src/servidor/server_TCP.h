@@ -83,7 +83,12 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   {
     errout("3rd ERROUT");
   }
-
+  // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
+  // Close sending channel, the client alredy closed theirs
+  if (shutdown(s, SHUT_WR) == -1)
+  {
+    errout("4th ERROUT");
+  }
   // Now we must close the connection
   close(s);
 

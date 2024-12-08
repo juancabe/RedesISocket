@@ -70,7 +70,7 @@ int client_tcp(char *req)
 
 	// Send request to server
 	int response_size;
-	char *response = TCP_send_and_wait_server_request(s, req, &response_size);
+	char *response = TCP_send_close_send_and_wait_server_request(s, req, &response_size);
 	if (response == NULL)
 	{
 		fprintf(stderr, "[CLIENT TCP] Error receiving response\n");
