@@ -4,7 +4,11 @@
 
 extern int errno;
 
-void handler(int signum) { printf("Alarma recibida \n"); }
+void handler(int signum) {
+#ifdef DEBUG
+  printf("[client_UDP]Alarma recibida \n");
+#endif
+}
 
 char *client_udp(char *request, char *hostname) {
   int errcode;
@@ -15,7 +19,7 @@ char *client_udp(char *request, char *hostname) {
   struct in_addr reqaddr;
   socklen_t addrlen;
   int n_retry;
-  struct sigaction vec;
+
   struct addrinfo hints, *res;
 
   if (strlen(request) > TAM_BUFFER_OUT_UDP) {
@@ -146,10 +150,11 @@ char *client_udp(char *request, char *hostname) {
   servaddr_in.sin_port = htons(PUERTO); // orden de red
 
   /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
+  struct sigaction vec;
   vec.sa_handler = handler;
   vec.sa_flags = 0;
   if (sigaction(SIGALRM, &vec, (struct sigaction *)0) == -1) {
-    perror(" sigaction(SIGALRM)");
+    perror("[client_UDP] sigaction(SIGALRM)");
 #ifdef DEBUG
     fprintf(stderr, "[client_udp]: unable to register the SIGALRM signal\n");
 #endif

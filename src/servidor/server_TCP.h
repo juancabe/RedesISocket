@@ -1,15 +1,54 @@
 #ifndef SERVER_TCP_H
 #define SERVER_TCP_H
 
-#include "common_server.h"
 #include "../common_TCP.h"
+#include "common_server.h"
 #include "compose_finger.h"
 #include "parse_client_request.h"
 
 #include "../cliente/client_tcp.h"
+void handler_server(int signum) {
+#ifdef DEBUG
+  printf("[server_TCP]Alarma recibida \n");
+#endif
+}
+// Receive one message, i.e. until \r\n
+static char *receive_one_message(char *hostname, int s) {
+  const int step_len = 1024;
+  int received_len, actual_len = 0;
+  char *buffer = (char *)malloc(step_len);
+  if (buffer == NULL) {
+    return NULL;
+  }
 
-void serverTCP(int s, struct sockaddr_in clientaddr_in)
-{
+  // Receive until \r\n, peer closes connection or timeout
+  alarm(TIMEOUT);
+  while ((received_len = recv(s, buffer + actual_len, step_len, 0))) {
+    if (received_len < 0)
+      return NULL;
+
+    actual_len += received_len;
+    char *tempPtr = buffer;
+    buffer = (char *)realloc(buffer, actual_len + step_len);
+    if (buffer == NULL) {
+      free(tempPtr);
+      return NULL;
+    }
+
+    if (strstr(buffer, "\r\n") != NULL) {
+      break;
+    }
+  }
+  alarm(0);
+
+  if (check_crlf_format(buffer, actual_len) == false) {
+    return NULL;
+  }
+
+  return buffer;
+}
+
+void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   char SERVER_NAME[] = "serverTCP";
   int reqcnt = 0;                /* keeps count of number of requests */
   char remote_hostname[MAXHOST]; /* remote host's name string */
@@ -19,37 +58,59 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   struct linger linger; /* allow a lingering, graceful close; */
                         /* used when setting SO_LINGER */
 
-  int status = getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in),
-                           remote_hostname, MAXHOST, NULL, 0, 0);
-  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname, MAXHOST) == NULL))
-  {
+  /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
+
+  const char *internal_error = "Internal error\r\n";
+  char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);
+  if (internal_error_malloced == NULL) {
+#ifdef DEBUG
+    fprintf(stderr, "[server_TCP]: unable to register MALLOC error\n");
+#endif
+    return;
+  }
+
+  struct sigaction vec;
+  vec.sa_handler = handler_server;
+  vec.sa_flags = 0;
+
+  if (sigaction(SIGALRM, &vec, (struct sigaction *)0) == -1) {
+    perror("[server_TCP] sigaction(SIGALRM)");
+#ifdef DEBUG
+    fprintf(stderr, "[server_TCP]: unable to register the SIGALRM signal\n");
+#endif
+    return;
+  }
+
+  int status =
+      getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in),
+                  remote_hostname, MAXHOST, NULL, 0, 0);
+  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname,
+                           MAXHOST) == NULL)) {
     perror(" inet_ntop \n");
   }
 #ifdef DEBUG
   /* Log a startup message. */
   long timevar; /* contains time returned by time() */
   time(&timevar);
-  printf("Startup from %s port %u at %s",
-         remote_hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
+  printf("Startup from %s port %u at %s", remote_hostname,
+         ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
 #endif
 
   /* Set the socket for a lingering, graceful close.
    * This will cause a final close of this socket to wait until all of the
-   * data sent on it has been received by the remote host.
+   * data sent on it has been received by the remote host if the remote host
+   * has closed its socket before all of the data has been received.
    */
   linger.l_onoff = 1;
   linger.l_linger = 1;
-  if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger,
-                 sizeof(linger)) == -1)
-  {
+  if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
     errout("First ERROUT");
   }
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
   reqcnt++;
-  if (buffer == NULL)
-  {
+  if (buffer == NULL) {
     errout("Second ERROUT");
   }
 
@@ -57,28 +118,28 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   char *username = NULL;
   bool username_malloced = false;
   char *hostname = NULL;
-  parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
+  parse_client_request_return ret =
+      parse_client_request(buffer, &hostname, &username);
+  free(buffer);
   username_malloced = true;
   char *response = NULL;
   bool response_malloced = false;
 
   // Now we must compose the response, i.e. call composeFinger
-  switch (ret)
-  {
+  switch (ret) {
   case USERNAME:
-    if (username == NULL)
-    {
-      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    if (username == NULL) {
+      response =
+          "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
       username_malloced = false;
-    }
-    else
-    {
+    } else {
       response = just_one_user_info(username);
       response_malloced = true;
     }
     break;
   case ERROR:
-    response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    response =
+        "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     break;
   case NO_USERNAME_NO_HOSTNAME:
     response = all_users_info();
@@ -90,12 +151,10 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
       username = "\r\n";
       username_malloced = false;
     }
-    if (hostname == NULL)
-    {
-      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
-    }
-    else
-    {
+    if (hostname == NULL) {
+      response =
+          "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    } else {
       response = client_tcp(username, hostname); // Username is the new request
       response_malloced = true;
     }
@@ -105,8 +164,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
     break;
   }
 
-  if (response == NULL)
-  {
+  if (response == NULL) {
     response = "Error during generating correct response\r\n";
     response_malloced = false;
   }
@@ -119,8 +177,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
   }
   // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   // Close sending channel, the client alredy closed theirs
-  if (shutdown(s, SHUT_WR) == -1)
-  {
+  if (shutdown(s, SHUT_WR) == -1) {
     errout("4th ERROUT");
   }
   // Now we must close the connection
@@ -128,8 +185,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in)
 
 #ifdef DEBUG
   time(&timevar);
-  printf("Completed %s port %u, %d requests, at %s\n",
-         hostname, ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
+  printf("Completed %s port %u, %d requests, at %s\n", hostname,
+         ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
 #endif
   // Free memory
   if (response_malloced)
