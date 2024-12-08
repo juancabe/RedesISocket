@@ -1,12 +1,14 @@
 #include "common_server.h"
 #include "server_TCP.h"
 #include "server_UDP.h"
+#include <netinet/in.h>
+#include <stdio.h>
+#include <sys/_types/_socklen_t.h>
 
 int FIN = 0;
 void finalizar() { FIN = 1; }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   int s_TCP, s_UDP; /* connected socket descriptor */
   int ls_TCP;       /* listen socket descriptor */
 
@@ -24,8 +26,7 @@ int main(int argc, char *argv[])
 
   /* Create the listen socket. */
   ls_TCP = socket(AF_INET, SOCK_STREAM, 0);
-  if (ls_TCP == -1)
-  {
+  if (ls_TCP == -1) {
     perror(argv[0]);
     fprintf(stderr, "%s: unable to create socket TCP\n", argv[0]);
     exit(1);
@@ -43,8 +44,8 @@ int main(int argc, char *argv[])
   myaddr_in.sin_port = htons(PUERTO);
 
   /* Bind the listen address to the socket. */
-  if (bind(ls_TCP, (const struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) == -1)
-  {
+  if (bind(ls_TCP, (const struct sockaddr *)&myaddr_in,
+           sizeof(struct sockaddr_in)) == -1) {
     perror(argv[0]);
     fprintf(stderr, "%s: unable to bind address TCP\n", argv[0]);
     exit(1);
@@ -59,23 +60,21 @@ int main(int argc, char *argv[])
 
   /* Create the socket UDP. */
   s_UDP = socket(AF_INET, SOCK_DGRAM, 0);
-  if (s_UDP == -1)
-  {
+  if (s_UDP == -1) {
     perror(argv[0]);
     printf("%s: unable to create socket UDP\n", argv[0]);
     exit(1);
   }
   /* Bind the server's address to the socket. */
-  if (bind(s_UDP, (struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) == -1)
-  {
+  if (bind(s_UDP, (struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) ==
+      -1) {
     perror(argv[0]);
     printf("%s: unable to bind address UDP\n", argv[0]);
     exit(1);
   }
   setpgrp();
 
-  switch (fork())
-  {
+  switch (fork()) {
   case -1: /* Unable to fork, for some reason. */
     perror(argv[0]);
     fprintf(stderr, "%s: unable to fork daemon\n", argv[0]);
@@ -87,8 +86,7 @@ int main(int argc, char *argv[])
     fclose(stderr);
 #endif
 
-    if (sigaction(SIGCHLD, &sa, NULL) == -1)
-    {
+    if (sigaction(SIGCHLD, &sa, NULL) == -1) {
       perror(" sigaction(SIGCHLD)");
       fprintf(stderr, "%s: unable to register the SIGCHLD signal\n", argv[0]);
       exit(1);
@@ -97,61 +95,69 @@ int main(int argc, char *argv[])
     /* Registrar SIGTERM para la finalizacion ordenada del programa servidor */
     vec.sa_handler = (void *)finalizar;
     vec.sa_flags = 0;
-    if (sigaction(SIGTERM, &vec, (struct sigaction *)0) == -1)
-    {
+    if (sigaction(SIGTERM, &vec, (struct sigaction *)0) == -1) {
       perror(" sigaction(SIGTERM)");
       fprintf(stderr, "%s: unable to register the SIGTERM signal\n", argv[0]);
       exit(1);
     }
 
-    while (!FIN)
-    {
+    while (!FIN) {
       /* Meter en el conjunto de sockets los sockets UDP y TCP */
       FD_ZERO(&readmask);
       FD_SET(ls_TCP, &readmask);
       FD_SET(s_UDP, &readmask);
       /*
-      Seleccionar el descriptor del socket que ha cambiado. Deja una marca en el conjunto de sockets (readmask)
+      Seleccionar el descriptor del socket que ha cambiado. Deja una marca en el
+      conjunto de sockets (readmask)
       */
       if (ls_TCP > s_UDP)
         s_mayor = ls_TCP;
       else
         s_mayor = s_UDP;
 
-      if ((numfds = select(s_mayor + 1, &readmask, (fd_set *)0, (fd_set *)0, NULL)) < 0)
-      {
-        if (errno == EINTR)
-        {
+      if ((numfds = select(s_mayor + 1, &readmask, (fd_set *)0, (fd_set *)0,
+                           NULL)) < 0) {
+        if (errno == EINTR) {
           FIN = 1;
           close(ls_TCP);
           close(s_UDP);
           perror("\nFinalizando el servidor. Se�al recibida en elect\n ");
         }
-      }
-      else
-      {
+      } else {
 
         /* Comprobamos si el socket seleccionado es el socket TCP */
-        if (FD_ISSET(ls_TCP, &readmask))
-        {
+        if (FD_ISSET(ls_TCP, &readmask)) {
           s_TCP = accept(ls_TCP, (struct sockaddr *)&clientaddr_in, &addrlen);
           if (s_TCP == -1)
             exit(1);
-          switch (fork())
-          {
+          switch (fork()) {
           case -1: /* Can't fork, just exit. */
             exit(1);
           case 0:          /* Child process comes here. */
-            close(ls_TCP); /* Close the listen socket inherited from the daemon. */
+            close(ls_TCP); /* Close the listen socket inherited from the daemon.
+                            */
             serverTCP(s_TCP, clientaddr_in);
             exit(0);
           default:
             close(s_TCP);
           }
         }
-        if (FD_ISSET(s_UDP, &readmask))
-        {
-          serverUDP(s_UDP, clientaddr_in);
+        if (FD_ISSET(s_UDP, &readmask)) {
+          socklen_t addrlen;
+          struct sockaddr_in clientaddr_in;
+          char *buffer =
+              preprocess_UDP_request(s_UDP, &clientaddr_in, &addrlen);
+          switch (fork()) {
+          case -1:
+            printf("Error al crear el proceso hijo\n");
+            break;
+          case 0:
+            close(ls_TCP);
+            serverUDP(buffer, s_UDP, clientaddr_in, addrlen);
+            exit(0);
+          default:
+            free(buffer);
+          }
         }
       }
     }
