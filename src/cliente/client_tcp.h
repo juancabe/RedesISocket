@@ -6,6 +6,8 @@
 
 #define MAX_RESPONSE_SIZE 1000000000 // 1GB
 
+extern int errno;
+
 void handler_ctcp(int signum) {
 #ifdef DEBUG
   printf("[client_TCP]Alarma recibida \n");
@@ -53,6 +55,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
       free(buffer);
 #ifdef DEBUG
       perror("[client_TCP] recv");
+      fprintf(stderr, "errno: %d\n", errno);
 #endif
       return connection_problem_malloced;
     }
