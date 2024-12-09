@@ -109,14 +109,14 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
    * This will cause a final close of this socket to wait (1 sec) until all of the
    * data sent on it has been received by the remote host if the remote host
    * has closed its socket before all of the data has been received.
-   */
-  struct linger linger; /* allow a lingering, graceful close; */
-                        /* used when setting SO_LINGER */
+  struct linger linger;
+
   linger.l_onoff = 1;
   linger.l_linger = 1;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
     perrout_TCP(s);
   }
+   */
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
