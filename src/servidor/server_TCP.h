@@ -235,13 +235,13 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (shutdown(s, SHUT_WR) == -1) {
     perrout_TCP(s);
   }
-#ifdef IFF_DEBUG
+#ifdef DEBUG
   fprintf(stderr, "Shutdown sent\n");
+#endif
   char dummy_buffer[1024];
   while (recv(s, dummy_buffer, sizeof(dummy_buffer), 0) > 0) {
     // Do nothing or process data as needed
   }
-#endif
   // Now we must close the connection
   close(s);
 
