@@ -48,7 +48,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   strcpy(connection_problem_malloced, connection_problem);
 
   // Receive until server closes connection or timeout
-  alarm(TIMEOUT * 2);
+  alarm(TIMEOUT * 20);
   while ((received_len = recv(s, buffer + actual_len, step_len, 0)) && actual_len < MAX_RESPONSE_SIZE) {
     if (received_len < 0) {
       free(buffer);
@@ -128,7 +128,7 @@ char *client_tcp(char *req, char *hostname) {
   struct linger linger;
 
   linger.l_onoff = 1;
-  linger.l_linger = 1;
+  linger.l_linger = 10;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
 #ifdef DEBUG
     fprintf(stderr, "[client_tcp] unable to set SO_LINGER\n");
