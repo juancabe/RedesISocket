@@ -194,7 +194,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
         n_retry--;
       } else {
 #ifdef DEBUG
-        printf("Unable to get response from");
+        printf("Unable to get response from %s\n", hostname);
 #endif
 #ifdef DEBUG
         printf("[client_udp] after %d attempts.\n", RETRIES);
