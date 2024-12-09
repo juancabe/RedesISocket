@@ -217,6 +217,11 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #ifdef DEBUG
   fprintf(stderr, "Response sent\n");
 #endif
+  // Optionally, read any remaining data the client might send
+  char dummy_buffer[1024];
+  while (recv(s, dummy_buffer, sizeof(dummy_buffer), 0) > 0) {
+    // Do nothing or process data as needed
+  }
   // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   // Close sending channel, the client alredy closed theirs
   if (shutdown(s, SHUT_WR) == -1) {
