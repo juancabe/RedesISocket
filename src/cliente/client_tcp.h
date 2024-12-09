@@ -3,6 +3,7 @@
 
 #include "../common_TCP.h"
 #include "common_client.h"
+#include <netinet/tcp.h>
 
 #define MAX_RESPONSE_SIZE 1000000000 // 1GB
 
@@ -39,6 +40,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   int received_len, actual_len = 0;
   char *buffer = (char *)malloc(step_len);
   bool received = false;
+
 #ifdef DEBUG
   fprintf(stderr, "Receiving response\n");
 #endif
@@ -94,6 +96,11 @@ char *client_tcp(char *req, char *hostname) {
     fprintf(stderr, "GOOD FORMAT IN\n");
   }
 #endif
+
+  int flag = 1;
+  if (setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
+    perror("setsockopt TCP_NODELAY");
+  }
 
   const char *internal_error = "Internal error\r\n";
   char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);
