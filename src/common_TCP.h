@@ -2,7 +2,5 @@
 #define COMMON_TCP_H
 
 #include "common.h"
-#include <cerrno>
-#include <string.h>
 
 #endif

@@ -3,12 +3,10 @@
 
 #include "../common_TCP.h"
 #include "common_client.h"
-#include <netdb.h>
-#include <sys/_types/_socklen_t.h>
 
 #define MAX_RESPONSE_SIZE 1000000000 // 1GB
 
-void handler(int signum) {
+void handler_ctcp(int signum) {
 #ifdef DEBUG
   printf("[client_TCP]Alarma recibida \n");
 #endif
@@ -96,7 +94,7 @@ char *client_tcp(char *req, char *hostname) {
   }
 
   struct sigaction vec;
-  vec.sa_handler = handler;
+  vec.sa_handler = handler_ctcp;
   vec.sa_flags = 0;
 
   if (sigaction(SIGALRM, &vec, (struct sigaction *)0) == -1) {

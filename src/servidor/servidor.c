@@ -1,9 +1,5 @@
-#include "common_server.h"
 #include "server_TCP.h"
 #include "server_UDP.h"
-#include <netinet/in.h>
-#include <stdio.h>
-#include <sys/_types/_socklen_t.h>
 
 int FIN = 0;
 void finalizar() { FIN = 1; }

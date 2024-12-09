@@ -4,7 +4,7 @@
 
 extern int errno;
 
-void handler(int signum) {
+void handler_cudp(int signum) {
 #ifdef DEBUG
   printf("[client_UDP]Alarma recibida \n");
 #endif
@@ -151,7 +151,7 @@ char *client_udp(char *request, char *hostname) {
 
   /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
   struct sigaction vec;
-  vec.sa_handler = handler;
+  vec.sa_handler = handler_cudp;
   vec.sa_flags = 0;
   if (sigaction(SIGALRM, &vec, (struct sigaction *)0) == -1) {
     perror("[client_UDP] sigaction(SIGALRM)");
