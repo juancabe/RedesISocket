@@ -52,6 +52,9 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   while ((received_len = recv(s, buffer + actual_len, step_len, 0)) && actual_len < MAX_RESPONSE_SIZE) {
     if (received_len < 0) {
       free(buffer);
+#ifdef DEBUG
+      perror("[client_TCP] recv");
+#endif
       return connection_problem_malloced;
     }
     received = true;
