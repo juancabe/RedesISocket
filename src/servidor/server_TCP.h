@@ -209,10 +209,16 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   fprintf(stderr, "About to send %ld bytes\n", strlen(response));
 #endif
   // Now we must send the response to the client
+  int send_buf_size;
+  socklen_t optlen = sizeof(send_buf_size);
+
+  if (getsockopt(s, SOL_SOCKET, SO_SNDBUF, &send_buf_size, &optlen) < 0) {
+    perrout_TCP(s);
+  }
   char *response_ptr = response;
   size_t response_len = strlen(response_ptr);
   while (response_len > 0) {
-    size_t to_send = response_len > STEP_SIZE_TCP ? STEP_SIZE_TCP : response_len;
+    size_t to_send = response_len > send_buf_size ? send_buf_size : response_len;
     int sent = send(s, response_ptr, to_send, 0);
     if (sent == -1) {
       perrout_TCP(s);
