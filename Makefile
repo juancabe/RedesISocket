@@ -1,6 +1,6 @@
 CC = gcc
 CCApple = clang
-CFLAGS = -O3 -DSEND_BIG_CHUNK -DDEBUG 
+CFLAGS = -O3 -DSEND_BIG_CHUNK #-DDEBUG 
 CFLAGSApple = -x c -O3 -DDEBUG
 #Descomentar la siguiente linea para olivo
 #LIBS = -lsocket -lnsl
