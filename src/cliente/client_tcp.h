@@ -130,8 +130,8 @@ char *client_tcp(char *req, char *hostname) {
   }
   struct linger linger;
 
-  linger.l_onoff = 1;
-  linger.l_linger = 10;
+  linger.l_onoff = 30;
+  linger.l_linger = 30;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
 #ifdef DEBUG
     fprintf(stderr, "[client_tcp] unable to set SO_LINGER\n");

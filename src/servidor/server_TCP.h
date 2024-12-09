@@ -112,8 +112,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
    */
   struct linger linger;
 
-  linger.l_onoff = 1;
-  linger.l_linger = 10;
+  linger.l_onoff = 30;
+  linger.l_linger = 30;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
     perrout_TCP(s);
   }
