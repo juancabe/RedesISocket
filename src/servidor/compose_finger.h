@@ -1,6 +1,7 @@
 #ifndef COMPOSE_FINGER_H
 #define COMPOSE_FINGER_H
 
+#include <ctype.h>
 #include <pwd.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -375,15 +376,33 @@ char *all_users_info() {
   return info;
 }
 
+// Función auxiliar para simplificar cadenas: eliminar espacios y convertir a minúsculas
+static char *simplify_string(const char *str) {
+  size_t len = strlen(str);
+  char *simplified = (char *)malloc(len + 1); // Longitud máxima posible
+  if (!simplified) {
+    return NULL;
+  }
+  size_t j = 0;
+  for (size_t i = 0; i < len; i++) {
+    if (!isspace((unsigned char)str[i])) {
+      simplified[j++] = tolower((unsigned char)str[i]);
+    }
+  }
+  simplified[j] = '\0';
+  return simplified;
+}
+
 char *just_one_user_info(char *username) {
-  // TODO:Si no se recuerda el nombre de la cuenta podemos utilizar el nombre real del usuario (no diferencia mayúsculas de minúsculas)
+  // TODO: Implementado
   char *info = NULL;
   struct utmpx *ut;
   setutxent();
-  // User array
+  // Array de usuarios
   UUTX_array users_array;
   UUTX_array_start(&users_array);
 
+  // Obtener sesiones activas
   while ((ut = getutxent()) != NULL) {
     char ut_user[UT_USER_SIZE + 1];
     strncpy(ut_user, ut->ut_user, UT_USER_SIZE);
@@ -395,12 +414,13 @@ char *just_one_user_info(char *username) {
   }
   endutxent();
 
+  // Si el usuario no está conectado, users_array.count == 0
   for (int i = 0; i < users_array.count; i++) {
     char *user_str = user_info(users_array.users[i].username, &(users_array.users[i]));
     if (user_str) {
       size_t current_len = info ? strlen(info) : 0;
       size_t user_len = strlen(user_str);
-      char *new_info = (char *)realloc(info, current_len + user_len + 3); // +3 for \r\n\0
+      char *new_info = (char *)realloc(info, current_len + user_len + 3); // +3 para \r\n\0
       if (!new_info) {
         free(info);
         free(user_str);
@@ -414,27 +434,86 @@ char *just_one_user_info(char *username) {
     }
   }
 
-  if (users_array.count == 0) {
-    char *user_str = user_info(username, NULL);
-    if (user_str) {
-      size_t current_len = info ? strlen(info) : 0;
-      size_t user_len = strlen(user_str);
-      char *new_info = (char *)realloc(info, current_len + user_len + 3); // +3 for \r\n\0
-      if (!new_info) {
-        free(info);
-        free(user_str);
-        UUTX_array_free(&users_array);
-        return NULL;
+  if (users_array.count == 0) { // Usuario no conectado
+    // Intentar encontrar un usuario cuyo nombre real coincida con el username
+    struct passwd *pwd;
+    setpwent();
+    int found = 0;
+    char *simplified_username = simplify_string(username);
+    if (!simplified_username) {
+      UUTX_array_free(&users_array);
+      return NULL;
+    }
+
+    while ((pwd = getpwent()) != NULL) {
+      if (pwd->pw_gecos) {
+        char *gecos = strdup(pwd->pw_gecos);
+        if (gecos) {
+          char *token = strtok(gecos, ",");
+          if (token) {
+            char *simplified_realname = simplify_string(token);
+            if (simplified_realname) {
+              if (strcmp(simplified_realname, simplified_username) == 0) {
+                // Usuario encontrado
+                found = 1;
+                free(simplified_realname);
+                free(gecos);
+                break;
+              }
+              free(simplified_realname);
+            }
+          }
+          free(gecos);
+        }
       }
-      info = new_info;
-      strcpy(info + current_len, user_str);
-      strcat(info, "\r\n");
-      free(user_str);
+      if (found) {
+        break;
+      }
+    }
+    endpwent();
+    free(simplified_username);
+
+    if (found) {
+      // Obtener información del usuario usando pwd->pw_name
+      char *user_str = user_info(pwd->pw_name, NULL);
+      if (user_str) {
+        size_t current_len = info ? strlen(info) : 0;
+        size_t user_len = strlen(user_str);
+        char *new_info = (char *)realloc(info, current_len + user_len + 3); // +3 para \r\n\0
+        if (!new_info) {
+          free(info);
+          free(user_str);
+          UUTX_array_free(&users_array);
+          return NULL;
+        }
+        info = new_info;
+        strcpy(info + current_len, user_str);
+        strcat(info, "\r\n");
+        free(user_str);
+      }
+    } else {
+      // No se encontró usuario, proceder como antes
+      char *user_str = user_info(username, NULL);
+      if (user_str) {
+        size_t current_len = info ? strlen(info) : 0;
+        size_t user_len = strlen(user_str);
+        char *new_info = (char *)realloc(info, current_len + user_len + 3); // +3 para \r\n\0
+        if (!new_info) {
+          free(info);
+          free(user_str);
+          UUTX_array_free(&users_array);
+          return NULL;
+        }
+        info = new_info;
+        strcpy(info + current_len, user_str);
+        strcat(info, "\r\n");
+        free(user_str);
+      }
     }
   }
 
   UUTX_array_free(&users_array);
-  // Add null terminator
+  // Agregar terminador nulo
   if (info) {
     size_t len = strlen(info);
     char *new_info = (char *)realloc(info, len + 1);
