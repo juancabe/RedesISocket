@@ -18,7 +18,7 @@
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
-#ifndef __APPLE__
+#ifdef __APPLE__
 
 typedef struct {
   char *username;
@@ -387,10 +387,20 @@ static char *simplify_string(const char *str) {
   for (size_t i = 0; i < len; i++) {
     if (!isspace((unsigned char)str[i])) {
       simplified[j++] = tolower((unsigned char)str[i]);
+    } else {
+      simplified[j++] = ' ';
     }
   }
   simplified[j] = '\0';
   return simplified;
+}
+
+size_t chars_until_space_or_null(const char *str) {
+  size_t i = 0;
+  while (str[i] != '\0' && !isspace((unsigned char)str[i])) {
+    i++;
+  }
+  return i;
 }
 
 char *just_one_user_info(char *username) {
@@ -453,21 +463,22 @@ char *just_one_user_info(char *username) {
           if (token) {
             char *simplified_realname = simplify_string(token);
             if (simplified_realname) {
-              if (strcmp(simplified_realname, simplified_username) == 0) {
-                // Usuario encontrado
-                found = 1;
-                free(simplified_realname);
-                free(gecos);
-                break;
+              char *simp_ptr = simplified_realname;
+              while (*simp_ptr != '\0') {
+                size_t len = chars_until_space_or_null(simp_ptr);
+                if (len == strlen(simplified_username) && strncmp(simp_ptr, simplified_username, len) == 0) {
+                  // Usuario encontrado
+                  found = 1;
+                  free(simplified_realname);
+                  free(gecos);
+                  break;
+                }
+                simp_ptr += len;
               }
-              free(simplified_realname);
             }
           }
           free(gecos);
         }
-      }
-      if (found) {
-        break;
       }
     }
     endpwent();
