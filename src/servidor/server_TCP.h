@@ -42,6 +42,9 @@ static char *receive_one_message(char *hostname, int s) {
   alarm(0);
 
   if (check_crlf_format(buffer, actual_len) == false) {
+#ifdef DEBUG
+    fprintf(stderr, "[server_TCP] Bad format in\n");
+#endif
     return NULL;
   }
 
@@ -81,19 +84,15 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     return;
   }
 
-  int status =
-      getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in),
-                  remote_hostname, MAXHOST, NULL, 0, 0);
-  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname,
-                           MAXHOST) == NULL)) {
+  int status = getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in), remote_hostname, MAXHOST, NULL, 0, 0);
+  if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname, MAXHOST) == NULL)) {
     perror(" inet_ntop \n");
   }
 #ifdef DEBUG
   /* Log a startup message. */
   long timevar; /* contains time returned by time() */
   time(&timevar);
-  printf("Startup from %s port %u at %s", remote_hostname,
-         ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
+  printf("Startup from %s port %u at %s", remote_hostname, ntohs(clientaddr_in.sin_port), (char *)ctime(&timevar));
 #endif
 
   /* Set the socket for a lingering, graceful close.
@@ -118,8 +117,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   char *username = NULL;
   bool username_malloced = false;
   char *hostname = NULL;
-  parse_client_request_return ret =
-      parse_client_request(buffer, &hostname, &username);
+  parse_client_request_return ret = parse_client_request(buffer, &hostname, &username);
   free(buffer);
   username_malloced = true;
   char *response = NULL;
@@ -129,8 +127,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   switch (ret) {
   case USERNAME:
     if (username == NULL) {
-      response =
-          "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
       username_malloced = false;
     } else {
       response = just_one_user_info(username);
@@ -138,8 +135,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     }
     break;
   case ERROR:
-    response =
-        "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+    response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     break;
   case NO_USERNAME_NO_HOSTNAME:
     response = all_users_info();
@@ -150,14 +146,25 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     {
       username = "\r\n";
       username_malloced = false;
+    } else {
+      // Append CRLF to username if username exists, username'll be the new request
+      username = (char *)realloc(username, strlen(username) + 3);
+      if (username == NULL) {
+        response = internal_error_malloced;
+        response_malloced = true;
+        break;
+      }
+      strcat(username, "\r\n");
     }
     if (hostname == NULL) {
-      response =
-          "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
-    } else {
-      response = client_tcp(username, hostname); // Username is the new request
-      response_malloced = true;
+      response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     }
+#ifdef DEBUG
+    fprintf(stderr, "calling client_tcp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
+#endif
+    response = client_tcp(username, hostname); // Username is the new request
+    response_malloced = true;
+
     break;
   default:
     response = "Unknown error\r\n";
@@ -185,8 +192,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 
 #ifdef DEBUG
   time(&timevar);
-  printf("Completed %s port %u, %d requests, at %s\n", hostname,
-         ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
+  printf("Completed %s port %u, %d requests, at %s\n", hostname, ntohs(clientaddr_in.sin_port), reqcnt, (char *)ctime(&timevar));
 #endif
   // Free memory
   if (response_malloced)

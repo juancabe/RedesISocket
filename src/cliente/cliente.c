@@ -1,10 +1,8 @@
 #include "client_tcp.h"
 #include "client_udp.h"
 
-int main(int argc, char **argv)
-{
-  if (argc < 2 || argc > 3)
-  {
+int main(int argc, char **argv) {
+  if (argc < 2 || argc > 3) {
     fprintf(stderr, "uso: %s {TCP|UDP} [request]\n", argv[0]);
     exit(1);
   }
@@ -17,27 +15,19 @@ int main(int argc, char **argv)
 
   char *response = NULL;
 
-  if (strcmp(argv[1], "TCP") == 0)
-  {
+  if (strcmp(argv[1], "TCP") == 0) {
     response = client_tcp(request, "localhost");
-  }
-  else if (strcmp(argv[1], "UDP") == 0)
-  {
+  } else if (strcmp(argv[1], "UDP") == 0) {
     response = client_udp(request, "localhost");
-  }
-  else
-  {
+  } else {
     fprintf(stderr, "Protocolo no soportado: %s\n", argv[1]);
     exit(1);
   }
 
-  if (response == NULL)
-  {
+  if (response == NULL) {
     fprintf(stderr, "Error al recibir respuesta\n");
     exit(1);
-  }
-  else
-  {
+  } else {
     printf("%s", response);
   }
 

@@ -15,8 +15,7 @@ void handler_ctcp(int signum) {
 // Returns string malloced with response from server, if malloc fails, returns
 // NULL
 // Request MUST be a null terminated string
-char *TCP_send_close_send_and_wait_server_request(int s, char *request,
-                                                  int *response_size) {
+char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *response_size) {
 
 #ifdef DEBUG
   fprintf(stderr, "Sending request: %s\n", request);
@@ -42,8 +41,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request,
   fprintf(stderr, "Receiving response\n");
 #endif
   const char *connection_problem = "Connection problem\r\n";
-  char *connection_problem_malloced =
-      (char *)malloc(strlen(connection_problem) + 1);
+  char *connection_problem_malloced = (char *)malloc(strlen(connection_problem) + 1);
   if (connection_problem_malloced == NULL) {
     return NULL;
   }
@@ -51,8 +49,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request,
 
   // Receive until server closes connection or timeout
   alarm(TIMEOUT);
-  while ((received_len = recv(s, buffer + actual_len, step_len, 0)) &&
-         actual_len < MAX_RESPONSE_SIZE) {
+  while ((received_len = recv(s, buffer + actual_len, step_len, 0)) && actual_len < MAX_RESPONSE_SIZE) {
     if (received_len < 0) {
       free(buffer);
       return connection_problem_malloced;
@@ -74,8 +71,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request,
 
   free(connection_problem_malloced);
   *response_size = actual_len;
-  return received ? (check_crlf_format(buffer, actual_len) ? buffer : NULL)
-                  : NULL;
+  return received ? (check_crlf_format(buffer, actual_len) ? buffer : NULL) : NULL;
 }
 
 char *client_tcp(char *req, char *hostname) {
@@ -86,6 +82,12 @@ char *client_tcp(char *req, char *hostname) {
   struct sockaddr_in servaddr_in; /* for server socket address */
   int i, j, errcode;
   socklen_t addrlen;
+
+  if (!check_crlf_format(req, strlen(req))) {
+    fprintf(stderr, "BAD FORMAT IN\n");
+  } else {
+    fprintf(stderr, "GOOD FORMAT IN\n");
+  }
 
   const char *internal_error = "Internal error\r\n";
   char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);
@@ -110,13 +112,11 @@ char *client_tcp(char *req, char *hostname) {
 #ifdef DEBUG
     fprintf(stderr, "[client_tcp] unable to create socket\n");
 #endif
-    size_t return_len = strlen("Error creating socket to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Error creating socket to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
-      fprintf(stderr,
-              "[client_tcp] Error creating socket to reach {hostname}\r\n");
+      fprintf(stderr, "[client_tcp] Error creating socket to reach {hostname}\r\n");
 #endif
       return internal_error_malloced;
     }
@@ -142,11 +142,9 @@ char *client_tcp(char *req, char *hostname) {
 /* Name was not found.  Return a
  * special value signifying the error. */
 #ifdef DEBUG
-    fprintf(stderr, "[client_tcp] No es posible resolver la IP de %s\n",
-            hostname);
+    fprintf(stderr, "[client_tcp] No es posible resolver la IP de %s\n", hostname);
 #endif
-    size_t return_len = strlen("Error resolving hostname ") + strlen(hostname) +
-                        strlen("\r\n") + 1;
+    size_t return_len = strlen("Error resolving hostname ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
@@ -166,13 +164,11 @@ char *client_tcp(char *req, char *hostname) {
 
   /* puerto del servidor en orden de red*/
   servaddr_in.sin_port = htons(PUERTO);
-  if (connect(s, (const struct sockaddr *)&servaddr_in,
-              sizeof(struct sockaddr_in)) == -1) {
+  if (connect(s, (const struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1) {
 #ifdef DEBUG
     fprintf(stderr, "[client_tcp] unable to connect to remote\n");
 #endif
-    size_t return_len =
-        strlen("Error connecting to ") + strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Error connecting to ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
@@ -203,14 +199,12 @@ char *client_tcp(char *req, char *hostname) {
 /* Print out a startup message for the user. */
 #ifdef DEBUG
   time(&timevar);
-  printf("Connected to localhost on port %u at %s", ntohs(myaddr_in.sin_port),
-         (char *)ctime(&timevar));
+  printf("Connected to localhost on port %u at %s", ntohs(myaddr_in.sin_port), (char *)ctime(&timevar));
 #endif
 
   // Send request to server
   int response_size;
-  char *response =
-      TCP_send_close_send_and_wait_server_request(s, req, &response_size);
+  char *response = TCP_send_close_send_and_wait_server_request(s, req, &response_size);
   if (response == NULL) {
 #ifdef DEBUG
     fprintf(stderr, "[client_tcp] Error receiving response\n");
