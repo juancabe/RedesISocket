@@ -184,10 +184,6 @@ char *client_udp(char *request, char *hostname, int retries) {
     /* Wait for the reply to come in. */
     if ((req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen)) == -1) {
       if (errno == EINTR) {
-        /* Alarm went off and aborted the receive.
-         * Need to retry the request if we have
-         * not already exceeded the retry limit.
-         */
 #ifdef DEBUG
         printf("attempt %d (retries %d).\n", n_retry, retries);
 #endif

@@ -529,6 +529,30 @@ char *just_one_user_info(char *username) {
   return info;
 }
 
+#elif defined(SEND_BIG_CHUNK)
+
+const int CHUNK_SIZE = 900000; // 900KB
+
+char *all_users_info() {
+  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  return info;
+}
+
+char *just_one_user_info(char *username) {
+  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  return info;
+}
+
 #else
 
 // Apple not implemented, return "NOT IMPLEMENTED\r\n"

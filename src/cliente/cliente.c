@@ -28,7 +28,11 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Error al recibir respuesta\n");
     exit(1);
   } else {
+#ifdef SEND_BIG_CHUNK
+    printf("Response length: %ld\n", strlen(response));
+#else
     printf("%s", response);
+#endif
   }
 
   return 0;
