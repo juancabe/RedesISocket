@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
   } else {
 #ifdef SEND_BIG_CHUNK
     printf("Response length: %ld\n", strlen(response));
+    printf("%s", response);
 #else
     printf("%s", response);
 #endif
