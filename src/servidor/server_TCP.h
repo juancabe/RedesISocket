@@ -205,18 +205,24 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     response = "Error during generating correct response\r\n";
     response_malloced = false;
   }
-
+#ifdef DEBUG
+  fprintf(stderr, "About to send %d bytes\n", strlen(response));
+#endif
   // Now we must send the response to the client
   if (send(s, response, strlen(response), 0) != strlen(response))
   // \0 no se envia, acaba con  \r\n
   {
     perrout_TCP(s);
   }
+#ifdef DEBUG
+  fprintf(stderr, "Response sent\n");
+#endif
   // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   // Close sending channel, the client alredy closed theirs
   if (shutdown(s, SHUT_WR) == -1) {
     perrout_TCP(s);
   }
+
   // Now we must close the connection
   close(s);
 
