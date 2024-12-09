@@ -52,7 +52,9 @@ bool check_crlf_format(char *buffer, int len) {
   if (!found) {
 #ifdef DEBUG
     fprintf(stderr, "[CHECK CRLF] No \\n found on str\n");
+    buffer[20] = '\0';
     fprintf(stderr, "%s\n", buffer);
+
 #endif
     return false;
   }
