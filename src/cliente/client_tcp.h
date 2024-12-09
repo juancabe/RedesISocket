@@ -125,7 +125,6 @@ char *client_tcp(char *req, char *hostname) {
     sprintf(return_str, "Error creating socket to reach %s\r\n", hostname);
     return return_str;
   }
-  /*
   struct linger linger;
 
   linger.l_onoff = 1;
@@ -136,8 +135,6 @@ char *client_tcp(char *req, char *hostname) {
 #endif
     perror("[client_tcp] setsockopt(SO_LINGER)");
   }
-
-  */
 
   /* clear out address structures */
   memset((char *)&myaddr_in, 0, sizeof(struct sockaddr_in));
