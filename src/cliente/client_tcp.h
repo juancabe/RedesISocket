@@ -101,6 +101,10 @@ char *client_tcp(char *req, char *hostname) {
   if (setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
     perror("setsockopt TCP_NODELAY");
   }
+  int new_size = 1024 * 1024; // 1MB
+  if (setsockopt(s, SOL_SOCKET, SO_RCVBUF, &new_size, sizeof(new_size)) < 0) {
+    perror("setsockopt SO_RCVBUF");
+  }
 
   const char *internal_error = "Internal error\r\n";
   char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);
