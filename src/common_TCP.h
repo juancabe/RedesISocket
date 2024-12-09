@@ -3,4 +3,6 @@
 
 #include "common.h"
 
+#define STEP_SIZE_TCP 1024
+
 #endif
