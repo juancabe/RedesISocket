@@ -20,30 +20,24 @@
 
 #ifdef __APPLE__
 
-const int CHUNK_SIZE = 663886080; // 660 mb
+// Apple not implemented, return "NOT IMPLEMENTED\r\n"
+const char *RESPONSE = "NOT IMPLEMENTED\r\n";
 
 char *all_users_info() {
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
   if (!info) {
     return NULL;
   }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  info[CHUNK_SIZE - 2] = '\n';
-  info[CHUNK_SIZE - 3] = '\r';
+  strcpy(info, RESPONSE);
   return info;
 }
 
 char *just_one_user_info(char *username) {
-
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
   if (!info) {
     return NULL;
   }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  info[CHUNK_SIZE - 2] = '\n';
-  info[CHUNK_SIZE - 3] = '\r';
+  strcpy(info, RESPONSE);
   return info;
 }
 

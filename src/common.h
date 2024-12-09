@@ -22,9 +22,14 @@
 #define TAM_BUFFER_IN_UDP 65535 /* maximum size of packets to be received */
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
-#define RETRIES 5
-#define TIMEOUT 40
+#define RETRIES 3
+#define TIMEOUT 20
 // #define DEBUG
+
+typedef struct {
+  char *response;
+  int socket;
+} client_return;
 
 bool check_crlf_format(char *buffer, int len) {
   bool found = false;

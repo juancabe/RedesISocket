@@ -10,15 +10,16 @@ void handler_cudp(int signum) {
 #endif
 }
 
-char *client_udp(char *request, char *hostname, int retries) {
+client_return client_udp(char *request, char *hostname, int timeout) {
   int errcode;
-  int retry = retries;
+  int retry = RETRIES;
   int s;
   struct sockaddr_in myaddr_in;
   struct sockaddr_in servaddr_in;
   struct in_addr reqaddr;
   socklen_t addrlen;
   int n_retry;
+  client_return ret;
 
   struct addrinfo hints, *res;
 
@@ -34,10 +35,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: Error creating error message\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = -1;
+      return ret;
     }
     sprintf(return_str, "Request too long when trying to reach %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = -1;
+    return ret;
   }
 
   /* Create the socket. */
@@ -54,10 +59,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: Error creating socket to reach {hostname}\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = -1;
+      return ret;
     }
     sprintf(return_str, "Error creating socket to reach %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = -1;
+    return ret;
   }
 
   /* clear out address structures */
@@ -79,10 +88,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: Error binding socket to reach {hostname}\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = -1;
+      return ret;
     }
     sprintf(return_str, "Error binding socket to reach %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = -1;
+    return ret;
   }
   addrlen = sizeof(struct sockaddr_in);
   if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
@@ -95,10 +108,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: Error reading socket address to reach {hostname}\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = -1;
+      return ret;
     }
     sprintf(return_str, "Error reading socket address to reach %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = -1;
+    return ret;
   }
 
 #ifdef DEBUG
@@ -125,10 +142,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: Error resolving IP of {hostname}\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = s;
+      return ret;
     }
     sprintf(return_str, "No es posible resolver la IP de %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = s;
+    return ret;
   } else {
     /* Copy address of host */
     servaddr_in.sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
@@ -152,14 +173,18 @@ char *client_udp(char *request, char *hostname, int retries) {
       fprintf(stderr, "[client_udp]: Error registering SIGALRM signal to reach "
                       "{hostname}\r\n");
 #endif
-      return NULL;
+      ret.response = NULL;
+      ret.socket = s;
+      return ret;
     }
     sprintf(return_str, "Functioning error to reach %s\r\n", hostname);
-    return return_str;
+    ret.response = return_str;
+    ret.socket = s;
+    return ret;
   }
 
-  n_retry = retries;
-
+  n_retry = retry;
+  alarm(timeout);
   while (n_retry > 0) {
     /* Send the request to the nameserver. */
     if (sendto(s, request, strlen(request), 0, (struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1) {
@@ -172,20 +197,24 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
         fprintf(stderr, "[client_udp]: Error sending request to reach {hostname}\r\n");
 #endif
-        return NULL;
+        ret.response = NULL;
+        ret.socket = s;
+        return ret;
       }
       sprintf(return_str, "Error sending request to reach %s\r\n", hostname);
-      return return_str;
+      ret.response = return_str;
+      ret.socket = s;
+      return ret;
     }
 
-    alarm(TIMEOUT);
+    alarm(timeout);
     char req_response[TAM_BUFFER_IN_UDP];
     ssize_t req_response_len = 0;
     /* Wait for the reply to come in. */
     if ((req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen)) == -1) {
       if (errno == EINTR) {
 #ifdef DEBUG
-        printf("attempt %d (retries %d).\n", n_retry, retries);
+        printf("attempt %d (retry %d).\n", n_retry, retry);
 #endif
         n_retry--;
       } else {
@@ -193,7 +222,7 @@ char *client_udp(char *request, char *hostname, int retries) {
         printf("Unable to get response from %s\n", hostname);
 #endif
 #ifdef DEBUG
-        printf("[client_udp] after %d attempts.\n", retries);
+        printf("[client_udp] after %d attempts.\n", retry);
 #endif
         size_t return_len = strlen("Unable to get response from ") + strlen(hostname) + 1;
         char *return_str = (char *)malloc(return_len);
@@ -201,10 +230,14 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
           fprintf(stderr, "[client_udp]: Error getting response from {hostname}\r\n");
 #endif
-          return NULL;
+          ret.response = NULL;
+          ret.socket = s;
+          return ret;
         }
         sprintf(return_str, "Unable to get response from %s", hostname);
-        return return_str;
+        ret.response = return_str;
+        ret.socket = s;
+        return ret;
       }
     } else {
       alarm(0); // Cancel the alarm
@@ -213,8 +246,9 @@ char *client_udp(char *request, char *hostname, int retries) {
         char *with_null = (char *)malloc(req_response_len + 1);
         strncpy(with_null, req_response, req_response_len);
         with_null[req_response_len] = '\0';
-        close(s);
-        return with_null;
+        ret.response = with_null;
+        ret.socket = s;
+        return ret;
       } else {
 #ifdef DEBUG
         printf("[client_udp] Error receiving response: format incorrect\n");
@@ -227,7 +261,7 @@ char *client_udp(char *request, char *hostname, int retries) {
   if (n_retry == 0) {
 #ifdef DEBUG
     printf("Unable to get response from");
-    printf("[client_udp] after %d attempts.\n", retries);
+    printf("[client_udp] after %d attempts.\n", retry);
 #endif
   }
 
@@ -239,10 +273,13 @@ char *client_udp(char *request, char *hostname, int retries) {
 #ifdef DEBUG
     fprintf(stderr, "[client_udp]: Error getting response from {hostname}\r\n");
 #endif
-    return NULL;
+    ret.response = NULL;
+    ret.socket = -1;
   }
-  sprintf(return_str, "Unable to get response from %s", hostname);
-  return return_str;
+  sprintf(return_str, "Unable to get response\r\n");
+  ret.response = return_str;
+  ret.socket = -1;
+  return ret;
 }
 
 #endif

@@ -13,26 +13,30 @@ int main(int argc, char **argv) {
   strcpy(request, argc == 3 ? argv[2] : "");
   strcat(request, "\r\n");
 
-  char *response = NULL;
+  client_return response = {0};
 
   if (strcmp(argv[1], "TCP") == 0) {
     response = client_tcp(request, "localhost");
   } else if (strcmp(argv[1], "UDP") == 0) {
-    response = client_udp(request, "localhost", TIMEOUT);
+    response = client_udp(request, "localhost", TIMEOUT * 2);
   } else {
     fprintf(stderr, "Protocolo no soportado: %s\n", argv[1]);
     exit(1);
   }
 
-  if (response == NULL) {
+  if (response.response == NULL) {
     fprintf(stderr, "Error al recibir respuesta\n");
     exit(1);
   } else {
 #ifdef SEND_BIG_CHUNK
     printf("Response length: %ld\n", strlen(response));
 #else
-    printf("%s", response);
+    printf("%s", response.response);
 #endif
+  }
+
+  if (response.socket > 0) {
+    close(response.socket);
   }
 
   return 0;
