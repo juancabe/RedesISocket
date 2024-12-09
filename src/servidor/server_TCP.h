@@ -67,9 +67,6 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 
   struct hostent *hp; /* pointer to host info for remote host */
 
-  struct linger linger; /* allow a lingering, graceful close; */
-                        /* used when setting SO_LINGER */
-
   /* Registrar SIGALRM para no quedar bloqueados en los recvfrom */
 
   const char *internal_error = "Internal error\r\n";
@@ -113,6 +110,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
    * data sent on it has been received by the remote host if the remote host
    * has closed its socket before all of the data has been received.
    */
+  struct linger linger; /* allow a lingering, graceful close; */
+                        /* used when setting SO_LINGER */
   linger.l_onoff = 1;
   linger.l_linger = 1;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
