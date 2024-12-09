@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
   int s_TCP, s_UDP; /* connected socket descriptor */
   int ls_TCP;       /* listen socket descriptor */
 
-  int cc; /* contains the number of bytes read */
+  int cc;                                        /* contains the number of bytes read */
   struct sigaction sa = {.sa_handler = SIG_IGN}; /* used to ignore SIGCHLD */
 
   struct sockaddr_in myaddr_in;     /* for local socket address */
@@ -40,8 +40,7 @@ int main(int argc, char *argv[]) {
   myaddr_in.sin_port = htons(PUERTO);
 
   /* Bind the listen address to the socket. */
-  if (bind(ls_TCP, (const struct sockaddr *)&myaddr_in,
-           sizeof(struct sockaddr_in)) == -1) {
+  if (bind(ls_TCP, (const struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) == -1) {
     perror(argv[0]);
     fprintf(stderr, "%s: unable to bind address TCP\n", argv[0]);
     exit(1);
@@ -62,8 +61,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
   /* Bind the server's address to the socket. */
-  if (bind(s_UDP, (struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) ==
-      -1) {
+  if (bind(s_UDP, (struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) == -1) {
     perror(argv[0]);
     printf("%s: unable to bind address UDP\n", argv[0]);
     exit(1);
@@ -111,8 +109,7 @@ int main(int argc, char *argv[]) {
       else
         s_mayor = s_UDP;
 
-      if ((numfds = select(s_mayor + 1, &readmask, (fd_set *)0, (fd_set *)0,
-                           NULL)) < 0) {
+      if ((numfds = select(s_mayor + 1, &readmask, (fd_set *)0, (fd_set *)0, NULL)) < 0) {
         if (errno == EINTR) {
           FIN = 1;
           close(ls_TCP);
@@ -137,12 +134,10 @@ int main(int argc, char *argv[]) {
           default:
             close(s_TCP);
           }
-        }
-        if (FD_ISSET(s_UDP, &readmask)) {
+        } else if (FD_ISSET(s_UDP, &readmask)) {
           socklen_t addrlen;
           struct sockaddr_in clientaddr_in;
-          char *buffer =
-              preprocess_UDP_request(s_UDP, &clientaddr_in, &addrlen);
+          char *buffer = preprocess_UDP_request(s_UDP, &clientaddr_in, &addrlen);
           switch (fork()) {
           case -1:
             printf("Error al crear el proceso hijo\n");

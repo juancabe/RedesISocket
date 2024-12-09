@@ -25,6 +25,12 @@ char *preprocess_UDP_request(int s, struct sockaddr_in *clientaddr_in, socklen_t
   return buffer;
 }
 
+void perrout_UDP(int socket) {
+  perror("[server_UDP] ERROR");
+  close(socket);
+  exit(1);
+}
+
 void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t addrlen) {
   struct in_addr reqaddr; /* for requested host's address */
   struct hostent *hp;     /* pointer to host info for requested host */
@@ -45,7 +51,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 #ifdef DEBUG
     fprintf(stderr, "[server_TCP]: unable to register MALLOC error\n");
 #endif
-    return;
+    perrout_UDP(s);
   }
 
   // Now we must parse client's message and respond to it
@@ -76,7 +82,11 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
       username_malloced = false;
     } else {
       response = just_one_user_info(username);
-      response_malloced = true;
+      if (response == NULL) {
+        response = internal_error_malloced;
+        response_malloced = false;
+      } else
+        response_malloced = true;
     }
     break;
   case ERROR:
@@ -84,7 +94,11 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
     break;
   case NO_USERNAME_NO_HOSTNAME:
     response = all_users_info();
-    response_malloced = true;
+    if (response == NULL) {
+      response = internal_error_malloced;
+      response_malloced = false;
+    } else
+      response_malloced = true;
     break;
   case HOSTNAME_REDIRECT:
     // Username should be malloced for move_hostnames
@@ -92,7 +106,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
       username = (char *)malloc(3);
       if (username == NULL) {
         response = internal_error_malloced;
-        response_malloced = true;
+        response_malloced = false;
         break;
       }
       strcpy(username, "\r\n");
@@ -101,7 +115,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
       username = (char *)realloc(username, strlen(username) + 3);
       if (username == NULL) {
         response = internal_error_malloced;
-        response_malloced = true;
+        response_malloced = false;
         break;
       }
       strcat(username, "\r\n");
@@ -109,6 +123,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 
     if (hostname == NULL) {
       response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
+      response_malloced = false;
     } else {
 #ifdef DEBUG
       if (move_hostnames(&username, &hostname)) {
@@ -123,11 +138,16 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
       fprintf(stderr, "calling client_udp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
       response = client_udp(username, hostname); // Username is the new request
-      response_malloced = true;
+      if (response == NULL) {
+        response = internal_error_malloced;
+        response_malloced = false;
+      } else
+        response_malloced = true;
     }
     break;
   default:
     response = "Unknown error\r\n";
+    response_malloced = false;
     break;
   }
 
@@ -148,7 +168,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
   addrlen = sizeof(struct sockaddr_in);
   // Now we must send the response to the client
   if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response)) {
-    errout("3rd ERROUT");
+    perrout_UDP(s);
   }
 
   // Free memory
@@ -160,6 +180,8 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
     free(hostname);
   if (buffer)
     free(buffer);
+
+  close(s);
   // ALL Done
 }
 

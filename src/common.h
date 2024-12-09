@@ -23,7 +23,7 @@
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
 #define RETRIES 5
-#define TIMEOUT 5
+#define TIMEOUT 1
 // #define DEBUG
 
 bool check_crlf_format(char *buffer, int len) {

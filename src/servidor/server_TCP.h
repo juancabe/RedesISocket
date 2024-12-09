@@ -7,11 +7,20 @@
 #include "parse_client_request.h"
 
 #include "../cliente/client_tcp.h"
+#include <unistd.h>
 void handler_server(int signum) {
 #ifdef DEBUG
   printf("[server_TCP]Alarma recibida \n");
 #endif
 }
+
+// perror, close socket, exit
+void perrout_TCP(int socket) {
+  perror("[server_TCP] ERROR");
+  close(socket);
+  exit(1);
+}
+
 // Receive one message, i.e. until \r\n
 static char *receive_one_message(char *hostname, int s) {
   const int step_len = 1024;
@@ -69,7 +78,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #ifdef DEBUG
     fprintf(stderr, "[server_TCP]: unable to register MALLOC error\n");
 #endif
-    return;
+    perrout_TCP(s);
   }
 
   struct sigaction vec;
@@ -81,12 +90,16 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #ifdef DEBUG
     fprintf(stderr, "[server_TCP]: unable to register the SIGALRM signal\n");
 #endif
-    return;
+    perrout_TCP(s);
   }
 
   int status = getnameinfo((struct sockaddr *)&clientaddr_in, sizeof(clientaddr_in), remote_hostname, MAXHOST, NULL, 0, 0);
   if (status && (inet_ntop(AF_INET, &(clientaddr_in.sin_addr), remote_hostname, MAXHOST) == NULL)) {
     perror(" inet_ntop \n");
+#ifdef DEBUG
+    fprintf(stderr, "%s: unable to get name\n", SERVER_NAME);
+#endif
+    perrout_TCP(s);
   }
 #ifdef DEBUG
   /* Log a startup message. */
@@ -96,21 +109,21 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #endif
 
   /* Set the socket for a lingering, graceful close.
-   * This will cause a final close of this socket to wait until all of the
+   * This will cause a final close of this socket to wait (1 sec) until all of the
    * data sent on it has been received by the remote host if the remote host
    * has closed its socket before all of the data has been received.
    */
   linger.l_onoff = 1;
   linger.l_linger = 1;
   if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
-    errout("First ERROUT");
+    perrout_TCP(s);
   }
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
   reqcnt++;
   if (buffer == NULL) {
-    errout("Second ERROUT");
+    perrout_TCP(s);
   }
 
   // Now we must parse client's message and respond to it
@@ -139,6 +152,9 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     break;
   case NO_USERNAME_NO_HOSTNAME:
     response = all_users_info();
+    if (response == NULL) {
+      response = internal_error_malloced;
+    }
     response_malloced = true;
     break;
   case HOSTNAME_REDIRECT:
@@ -195,12 +211,12 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (send(s, response, strlen(response), 0) != strlen(response))
   // \0 no se envia, acaba con  \r\n
   {
-    errout("3rd ERROUT");
+    perrout_TCP(s);
   }
   // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   // Close sending channel, the client alredy closed theirs
   if (shutdown(s, SHUT_WR) == -1) {
-    errout("4th ERROUT");
+    perrout_TCP(s);
   }
   // Now we must close the connection
   close(s);
@@ -216,6 +232,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     free(username);
   if (hostname != NULL)
     free(hostname);
+
+  return;
 }
 
 #endif

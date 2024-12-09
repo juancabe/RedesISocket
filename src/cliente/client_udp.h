@@ -28,8 +28,7 @@ char *client_udp(char *request, char *hostname) {
 #endif
     // return "Request too long when trying to reach {hostname}\r\n"; return
     // this but alloced and correctly formated
-    size_t return_len = strlen("Request too long when trying to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Request too long when trying to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)(char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
@@ -37,8 +36,7 @@ char *client_udp(char *request, char *hostname) {
 #endif
       return NULL;
     }
-    sprintf(return_str, "Request too long when trying to reach %s\r\n",
-            hostname);
+    sprintf(return_str, "Request too long when trying to reach %s\r\n", hostname);
     return return_str;
   }
 
@@ -50,13 +48,11 @@ char *client_udp(char *request, char *hostname) {
 #endif
     // return "Error creating socket to reach {hostname}\r\n"; return this but
     // alloced and correctly formated
-    size_t return_len = strlen("Error creating socket to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Error creating socket to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
-      fprintf(stderr,
-              "[client_udp]: Error creating socket to reach {hostname}\r\n");
+      fprintf(stderr, "[client_udp]: Error creating socket to reach {hostname}\r\n");
 #endif
       return NULL;
     }
@@ -71,20 +67,17 @@ char *client_udp(char *request, char *hostname) {
   myaddr_in.sin_family = AF_INET;
   myaddr_in.sin_port = 0;
   myaddr_in.sin_addr.s_addr = INADDR_ANY;
-  if (bind(s, (const struct sockaddr *)&myaddr_in,
-           sizeof(struct sockaddr_in)) == -1) {
+  if (bind(s, (const struct sockaddr *)&myaddr_in, sizeof(struct sockaddr_in)) == -1) {
 #ifdef DEBUG
     fprintf(stderr, "[client_udp]: unable to bind socket\n");
 #endif
     // return "Error binding socket to reach {hostname}\r\n"; return this but
     // alloced and correctly formated
-    size_t return_len = strlen("Error binding socket to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Error binding socket to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
-      fprintf(stderr,
-              "[client_udp]: Error binding socket to reach {hostname}\r\n");
+      fprintf(stderr, "[client_udp]: Error binding socket to reach {hostname}\r\n");
 #endif
       return NULL;
     }
@@ -96,19 +89,15 @@ char *client_udp(char *request, char *hostname) {
 #ifdef DEBUG
     fprintf(stderr, "[client_udp]: unable to read socket address\n");
 #endif
-    size_t return_len = strlen("Error reading socket address to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Error reading socket address to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
-      fprintf(
-          stderr,
-          "[client_udp]: Error reading socket address to reach {hostname}\r\n");
+      fprintf(stderr, "[client_udp]: Error reading socket address to reach {hostname}\r\n");
 #endif
       return NULL;
     }
-    sprintf(return_str, "Error reading socket address to reach %s\r\n",
-            hostname);
+    sprintf(return_str, "Error reading socket address to reach %s\r\n", hostname);
     return return_str;
   }
 
@@ -128,11 +117,9 @@ char *client_udp(char *request, char *hostname) {
 /* Name was not found.  Return a
  * special value signifying the error. */
 #ifdef DEBUG
-    fprintf(stderr, "[client_udp]: No es posible resolver la IP de %s\n",
-            hostname);
+    fprintf(stderr, "[client_udp]: No es posible resolver la IP de %s\n", hostname);
 #endif
-    size_t return_len = strlen("No es posible resolver la IP de ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("No es posible resolver la IP de ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
@@ -158,8 +145,7 @@ char *client_udp(char *request, char *hostname) {
 #ifdef DEBUG
     fprintf(stderr, "[client_udp]: unable to register the SIGALRM signal\n");
 #endif
-    size_t return_len = strlen("Functioning error to reach ") +
-                        strlen(hostname) + strlen("\r\n") + 1;
+    size_t return_len = strlen("Functioning error to reach ") + strlen(hostname) + strlen("\r\n") + 1;
     char *return_str = (char *)malloc(return_len);
     if (return_str == NULL) {
 #ifdef DEBUG
@@ -176,18 +162,15 @@ char *client_udp(char *request, char *hostname) {
 
   while (n_retry > 0) {
     /* Send the request to the nameserver. */
-    if (sendto(s, request, strlen(request), 0, (struct sockaddr *)&servaddr_in,
-               sizeof(struct sockaddr_in)) == -1) {
+    if (sendto(s, request, strlen(request), 0, (struct sockaddr *)&servaddr_in, sizeof(struct sockaddr_in)) == -1) {
 #ifdef DEBUG
       fprintf(stderr, "[client_udp]: unable to send request\n");
 #endif
-      size_t return_len = strlen("Error sending request to reach ") +
-                          strlen(hostname) + strlen("\r\n") + 1;
+      size_t return_len = strlen("Error sending request to reach ") + strlen(hostname) + strlen("\r\n") + 1;
       char *return_str = (char *)malloc(return_len);
       if (return_str == NULL) {
 #ifdef DEBUG
-        fprintf(stderr,
-                "[client_udp]: Error sending request to reach {hostname}\r\n");
+        fprintf(stderr, "[client_udp]: Error sending request to reach {hostname}\r\n");
 #endif
         return NULL;
       }
@@ -199,9 +182,7 @@ char *client_udp(char *request, char *hostname) {
     char req_response[TAM_BUFFER_IN_UDP];
     ssize_t req_response_len = 0;
     /* Wait for the reply to come in. */
-    if ((req_response_len =
-             recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0,
-                      (struct sockaddr *)&servaddr_in, &addrlen)) == -1) {
+    if ((req_response_len = recvfrom(s, req_response, TAM_BUFFER_IN_UDP, 0, (struct sockaddr *)&servaddr_in, &addrlen)) == -1) {
       if (errno == EINTR) {
         /* Alarm went off and aborted the receive.
          * Need to retry the request if we have
@@ -218,13 +199,11 @@ char *client_udp(char *request, char *hostname) {
 #ifdef DEBUG
         printf("[client_udp] after %d attempts.\n", RETRIES);
 #endif
-        size_t return_len =
-            strlen("Unable to get response from ") + strlen(hostname) + 1;
+        size_t return_len = strlen("Unable to get response from ") + strlen(hostname) + 1;
         char *return_str = (char *)malloc(return_len);
         if (return_str == NULL) {
 #ifdef DEBUG
-          fprintf(stderr,
-                  "[client_udp]: Error getting response from {hostname}\r\n");
+          fprintf(stderr, "[client_udp]: Error getting response from {hostname}\r\n");
 #endif
           return NULL;
         }
@@ -258,8 +237,7 @@ char *client_udp(char *request, char *hostname) {
 
   /* Close the socket. */
   close(s);
-  size_t return_len =
-      strlen("Unable to get response from ") + strlen(hostname) + 1;
+  size_t return_len = strlen("Unable to get response from ") + strlen(hostname) + 1;
   char *return_str = (char *)malloc(return_len);
   if (return_str == NULL) {
 #ifdef DEBUG
