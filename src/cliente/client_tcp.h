@@ -20,6 +20,15 @@ void handler_ctcp(int signum) {
 // Request MUST be a null terminated string
 char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *response_size) {
 
+  int step_len;
+  socklen_t optlen = sizeof(step_len);
+  if (getsockopt(s, SOL_SOCKET, SO_RCVBUF, &step_len, &optlen) < 0) {
+    perror("getsockopt SO_RCVBUF");
+  }
+#ifdef DEBUG
+  fprintf(stderr, "Receive buffer size: %d\n", step_len);
+#endif
+
 #ifdef DEBUG
   fprintf(stderr, "Sending request: %s\n", request);
 #endif
@@ -36,7 +45,6 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   }
 
   // Receive response from server, until he closes connection
-  const int step_len = 1024;
   int received_len, actual_len = 0;
   char *buffer = (char *)malloc(step_len);
   bool received = false;
@@ -52,8 +60,12 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   strcpy(connection_problem_malloced, connection_problem);
 
   // Receive until server closes connection or timeout
+  alarm(TIMEOUT);
   while ((received_len = recv(s, buffer + actual_len, step_len, 0)) && (actual_len < MAX_RESPONSE_SIZE)) {
     if (received_len < 0) {
+      if (errno == EINTR) {
+        alarm(0);
+      }
       free(buffer);
 #ifdef DEBUG
       perror("[client_TCP] recv");
@@ -77,6 +89,7 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
       return NULL;
     }
   }
+  alarm(0);
 
   free(connection_problem_malloced);
   *response_size = actual_len;

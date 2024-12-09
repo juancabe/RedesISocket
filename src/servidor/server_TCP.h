@@ -228,8 +228,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #ifdef DEBUG
   fprintf(stderr, "Response sent\n");
 #endif
-  // Optionally, read any remaining data the client might send
-
+  // Read any remaining data the client might send, so wait till peer closes his send connection
   // https://blog.netherlabs.nl/articles/2009/01/18/the-ultimate-so_linger-page-or-why-is-my-tcp-not-reliable
   // Close sending channel, the client alredy closed theirs
   if (shutdown(s, SHUT_WR) == -1) {
@@ -239,9 +238,10 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   fprintf(stderr, "Shutdown sent\n");
 #endif
   char dummy_buffer[1024];
-  while (recv(s, dummy_buffer, sizeof(dummy_buffer), 0) > 0) {
-    // Do nothing or process data as needed
-  }
+  alarm(TIMEOUT);
+  while (recv(s, dummy_buffer, sizeof(dummy_buffer), 0) > 0)
+    ;
+  alarm(0);
   // Now we must close the connection
   close(s);
 
