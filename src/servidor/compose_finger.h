@@ -395,16 +395,7 @@ static char *simplify_string(const char *str) {
   return simplified;
 }
 
-size_t chars_until_space_or_null(const char *str) {
-  size_t i = 0;
-  while (str[i] != '\0' && !isspace((unsigned char)str[i])) {
-    i++;
-  }
-  return i;
-}
-
 char *just_one_user_info(char *username) {
-  // TODO: Implementado
   char *info = NULL;
   struct utmpx *ut;
   setutxent();
@@ -424,7 +415,7 @@ char *just_one_user_info(char *username) {
   }
   endutxent();
 
-  // Si el usuario no está conectado, users_array.count == 0
+  // Si el usuario está conectado
   for (int i = 0; i < users_array.count; i++) {
     char *user_str = user_info(users_array.users[i].username, &(users_array.users[i]));
     if (user_str) {
@@ -445,7 +436,7 @@ char *just_one_user_info(char *username) {
   }
 
   if (users_array.count == 0) { // Usuario no conectado
-    // Intentar encontrar un usuario cuyo nombre real coincida con el username
+    // Intentar encontrar un usuario cuyo nombre real coincida parcialmente con el username
     struct passwd *pwd;
     setpwent();
     int found = 0;
@@ -463,22 +454,21 @@ char *just_one_user_info(char *username) {
           if (token) {
             char *simplified_realname = simplify_string(token);
             if (simplified_realname) {
-              char *simp_ptr = simplified_realname;
-              while (*simp_ptr != '\0') {
-                size_t len = chars_until_space_or_null(simp_ptr);
-                if (len == strlen(simplified_username) && strncmp(simp_ptr, simplified_username, len) == 0) {
-                  // Usuario encontrado
-                  found = 1;
-                  free(simplified_realname);
-                  free(gecos);
-                  break;
-                }
-                simp_ptr += len;
+              if (strstr(simplified_realname, simplified_username) != NULL) {
+                // Usuario encontrado
+                found = 1;
+                free(simplified_realname);
+                free(gecos);
+                break;
               }
+              free(simplified_realname);
             }
           }
           free(gecos);
         }
+      }
+      if (found) {
+        break;
       }
     }
     endpwent();
