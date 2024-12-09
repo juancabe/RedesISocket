@@ -52,10 +52,23 @@ char *all_users_info() {
   }
   memset(info, 'A', CHUNK_SIZE - 1);
   info[CHUNK_SIZE - 1] = '\0';
+  info[CHUNK_SIZE - 2] = '\n';
+  info[CHUNK_SIZE - 3] = '\r';
   return info;
 }
 
-char *just_one_user_info(char *username) {}
+char *just_one_user_info(char *username) {
+
+  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  info[CHUNK_SIZE - 2] = '\n';
+  info[CHUNK_SIZE - 3] = '\r';
+  return info;
+}
 
 #else
 
