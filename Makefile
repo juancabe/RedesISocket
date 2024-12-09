@@ -1,7 +1,7 @@
 CC = gcc
 CCApple = clang
 CFLAGS = -O3 #-DDEBUG
-CFLAGSApple = -x c -O3 -DDEBUG
+CFLAGSApple = -x c -O3 #-DDEBUG
 #Descomentar la siguiente linea para olivo
 #LIBS = -lsocket -lnsl
 #Descomentar la siguiente linea para linux
