@@ -3,6 +3,6 @@
 
 #include "common.h"
 
-#define STEP_SIZE_TCP 1024
+#define STEP_SIZE_TCP 4096
 
 #endif
