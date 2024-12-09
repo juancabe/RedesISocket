@@ -206,7 +206,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     response_malloced = false;
   }
 #ifdef DEBUG
-  fprintf(stderr, "About to send %d bytes\n", strlen(response));
+  fprintf(stderr, "About to send %ld bytes\n", strlen(response));
 #endif
   // Now we must send the response to the client
   if (send(s, response, strlen(response), 0) != strlen(response))
