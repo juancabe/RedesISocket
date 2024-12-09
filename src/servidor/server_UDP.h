@@ -137,7 +137,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 #ifdef DEBUG
       fprintf(stderr, "calling client_udp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
-      response = client_udp(username, hostname); // Username is the new request
+      response = client_udp(username, hostname, TIMEOUT - 1); // Username is the new request
       if (response == NULL) {
         response = internal_error_malloced;
         response_malloced = false;

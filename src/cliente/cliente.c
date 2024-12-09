@@ -18,7 +18,7 @@ int main(int argc, char **argv) {
   if (strcmp(argv[1], "TCP") == 0) {
     response = client_tcp(request, "localhost");
   } else if (strcmp(argv[1], "UDP") == 0) {
-    response = client_udp(request, "localhost");
+    response = client_udp(request, "localhost", TIMEOUT);
   } else {
     fprintf(stderr, "Protocolo no soportado: %s\n", argv[1]);
     exit(1);

@@ -10,7 +10,7 @@ void handler_cudp(int signum) {
 #endif
 }
 
-char *client_udp(char *request, char *hostname) {
+char *client_udp(char *request, char *hostname, int timeout) {
   int errcode;
   int retry = RETRIES;
   int s;
@@ -178,7 +178,7 @@ char *client_udp(char *request, char *hostname) {
       return return_str;
     }
 
-    alarm(TIMEOUT);
+    alarm(timeout);
     char req_response[TAM_BUFFER_IN_UDP];
     ssize_t req_response_len = 0;
     /* Wait for the reply to come in. */
