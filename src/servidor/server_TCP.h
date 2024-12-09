@@ -158,12 +158,13 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     }
     if (hostname == NULL) {
       response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
-    }
+    } else {
 #ifdef DEBUG
-    fprintf(stderr, "calling client_tcp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
+      fprintf(stderr, "calling client_tcp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
-    response = client_tcp(username, hostname); // Username is the new request
-    response_malloced = true;
+      response = client_tcp(username, hostname); // Username is the new request
+      response_malloced = true;
+    }
 
     break;
   default:

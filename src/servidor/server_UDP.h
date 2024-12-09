@@ -39,6 +39,15 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
   fprintf(stderr, "[serverUDP] Received message: %s\n", buffer);
 #endif
 
+  const char *internal_error = "Internal error\r\n";
+  char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);
+  if (internal_error_malloced == NULL) {
+#ifdef DEBUG
+    fprintf(stderr, "[server_TCP]: unable to register MALLOC error\n");
+#endif
+    return;
+  }
+
   // Now we must parse client's message and respond to it
   char *username = NULL;
   char *hostname = NULL;
@@ -82,10 +91,22 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
     {
       username = "\r\n";
       username_malloced = false;
+    } else {
+      // Append CRLF to username if username exists, username'll be the new request
+      username = (char *)realloc(username, strlen(username) + 3);
+      if (username == NULL) {
+        response = internal_error_malloced;
+        response_malloced = true;
+        break;
+      }
+      strcat(username, "\r\n");
     }
     if (hostname == NULL) {
       response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     } else {
+#ifdef DEBUG
+      fprintf(stderr, "calling client_udp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
+#endif
       response = client_udp(username, hostname); // Username is the new request
       response_malloced = true;
     }
