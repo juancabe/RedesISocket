@@ -63,7 +63,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut) {
     }
 
     array->users[0].username = safe_strdup(ut_user, UT_USER_SIZE);
-    array->users[0].ut = (utmpx *)malloc(sizeof(struct utmpx));
+    array->users[0].ut = (struct utmpx *)malloc(sizeof(struct utmpx));
     if (array->users[0].ut == NULL) {
       return -3;
     }
@@ -75,7 +75,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut) {
     for (int i = 0; i < array->count; i++) {
       if (strcmp(array->users[i].username, ut_user) == 0) {
         array->users[i].ut_count++;
-        array->users[i].ut = (utmpx *)realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
+        array->users[i].ut = (struct utmpx *)realloc(array->users[i].ut, array->users[i].ut_count * sizeof(struct utmpx));
         if (array->users[i].ut == NULL) {
           return -3;
         }
@@ -91,7 +91,7 @@ static int UUTX_array_add(UUTX_array *array, struct utmpx *ut) {
     if (array->users[array->count].username == NULL) {
       return -3;
     }
-    array->users[array->count].ut = (utmpx *)malloc(sizeof(struct utmpx));
+    array->users[array->count].ut = (struct utmpx *)malloc(sizeof(struct utmpx));
     if (array->users[array->count].ut == NULL) {
       return -3;
     }
