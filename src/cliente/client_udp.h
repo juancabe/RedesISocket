@@ -10,9 +10,9 @@ void handler_cudp(int signum) {
 #endif
 }
 
-char *client_udp(char *request, char *hostname, int timeout) {
+char *client_udp(char *request, char *hostname, int retries) {
   int errcode;
-  int retry = RETRIES;
+  int retry = retries;
   int s;
   struct sockaddr_in myaddr_in;
   struct sockaddr_in servaddr_in;
@@ -158,7 +158,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
     return return_str;
   }
 
-  n_retry = RETRIES;
+  n_retry = retries;
 
   while (n_retry > 0) {
     /* Send the request to the nameserver. */
@@ -178,7 +178,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
       return return_str;
     }
 
-    alarm(timeout);
+    alarm(TIMEOUT);
     char req_response[TAM_BUFFER_IN_UDP];
     ssize_t req_response_len = 0;
     /* Wait for the reply to come in. */
@@ -189,7 +189,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
          * not already exceeded the retry limit.
          */
 #ifdef DEBUG
-        printf("attempt %d (retries %d).\n", n_retry, RETRIES);
+        printf("attempt %d (retries %d).\n", n_retry, retries);
 #endif
         n_retry--;
       } else {
@@ -197,7 +197,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
         printf("Unable to get response from %s\n", hostname);
 #endif
 #ifdef DEBUG
-        printf("[client_udp] after %d attempts.\n", RETRIES);
+        printf("[client_udp] after %d attempts.\n", retries);
 #endif
         size_t return_len = strlen("Unable to get response from ") + strlen(hostname) + 1;
         char *return_str = (char *)malloc(return_len);
@@ -231,7 +231,7 @@ char *client_udp(char *request, char *hostname, int timeout) {
   if (n_retry == 0) {
 #ifdef DEBUG
     printf("Unable to get response from");
-    printf("[client_udp] after %d attempts.\n", RETRIES);
+    printf("[client_udp] after %d attempts.\n", retries);
 #endif
   }
 
