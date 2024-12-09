@@ -139,10 +139,25 @@ char *client_tcp(char *req, char *hostname) {
   if (setsockopt(s, IPPROTO_TCP, TCP_NODELAY, &flag, sizeof(flag)) < 0) {
     perror("setsockopt TCP_NODELAY");
   }
+  int rcvbuf;
+  socklen_t optlen = sizeof(rcvbuf);
+  if (getsockopt(s, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &optlen) < 0) {
+    perror("getsockopt SO_RCVBUF");
+  }
+#ifdef DEBUG
+  fprintf(stderr, "Receive buffer size: %d\n", rcvbuf);
+#endif
   int new_size = 1024 * 1024 * 1024; // 1MB
   if (setsockopt(s, SOL_SOCKET, SO_RCVBUF, &new_size, sizeof(new_size)) < 0) {
     perror("setsockopt SO_RCVBUF");
   }
+
+  if (getsockopt(s, SOL_SOCKET, SO_RCVBUF, &rcvbuf, &optlen) < 0) {
+    perror("getsockopt SO_RCVBUF");
+  }
+#ifdef DEBUG
+  fprintf(stderr, "Receive buffer size: %d\n", rcvbuf);
+#endif
 
   struct linger linger;
 
