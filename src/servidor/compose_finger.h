@@ -43,7 +43,7 @@ char *just_one_user_info(char *username) {
 
 #elif defined(SEND_BIG_CHUNK)
 
-const int CHUNK_SIZE = 26388608; // 260 mb
+const int CHUNK_SIZE = 36388608; // 360 mb
 
 char *all_users_info() {
   char *info = (char *)malloc(CHUNK_SIZE); // 900KB
