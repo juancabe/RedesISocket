@@ -18,7 +18,46 @@
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
-#ifndef __APPLE__
+#ifdef __APPLE__
+
+// Apple not implemented, return "NOT IMPLEMENTED\r\n"
+const char *RESPONSE = "NOT IMPLEMENTED\r\n";
+
+char *all_users_info() {
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
+  if (!info) {
+    return NULL;
+  }
+  strcpy(info, RESPONSE);
+  return info;
+}
+
+char *just_one_user_info(char *username) {
+  char *info = (char *)malloc(strlen(RESPONSE) + 1);
+  if (!info) {
+    return NULL;
+  }
+  strcpy(info, RESPONSE);
+  return info;
+}
+
+#elif defined(SEND_BIG_CHUNK)
+
+const int CHUNK_SIZE = 900000; // 900KB
+
+char *all_users_info() {
+  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  return info;
+}
+
+char *just_one_user_info(char *username) {}
+
+#else
 
 typedef struct {
   char *username;
@@ -526,53 +565,6 @@ char *just_one_user_info(char *username) {
     info[len] = '\0';
   }
 
-  return info;
-}
-
-#elif defined(SEND_BIG_CHUNK)
-
-const int CHUNK_SIZE = 900000; // 900KB
-
-char *all_users_info() {
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
-  if (!info) {
-    return NULL;
-  }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  return info;
-}
-
-char *just_one_user_info(char *username) {
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
-  if (!info) {
-    return NULL;
-  }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  return info;
-}
-
-#else
-
-// Apple not implemented, return "NOT IMPLEMENTED\r\n"
-const char *RESPONSE = "NOT IMPLEMENTED\r\n";
-
-char *all_users_info() {
-  char *info = (char *)malloc(strlen(RESPONSE) + 1);
-  if (!info) {
-    return NULL;
-  }
-  strcpy(info, RESPONSE);
-  return info;
-}
-
-char *just_one_user_info(char *username) {
-  char *info = (char *)malloc(strlen(RESPONSE) + 1);
-  if (!info) {
-    return NULL;
-  }
-  strcpy(info, RESPONSE);
   return info;
 }
 
