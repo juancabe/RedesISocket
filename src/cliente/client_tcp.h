@@ -135,17 +135,6 @@ char *client_tcp(char *req, char *hostname) {
     return return_str;
   }
 
-  struct linger linger;
-
-  linger.l_onoff = 1;
-  linger.l_linger = 30;
-  if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
-#ifdef DEBUG
-    fprintf(stderr, "[client_tcp] unable to set SO_LINGER\n");
-#endif
-    perror("[client_tcp] setsockopt(SO_LINGER)");
-  }
-
   /* clear out address structures */
   memset((char *)&myaddr_in, 0, sizeof(struct sockaddr_in));
   memset((char *)&servaddr_in, 0, sizeof(struct sockaddr_in));

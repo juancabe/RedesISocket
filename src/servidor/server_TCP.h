@@ -110,13 +110,6 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
    * data sent on it has been received by the remote host if the remote host
    * has closed its socket before all of the data has been received.
    */
-  struct linger linger;
-
-  linger.l_onoff = 30;
-  linger.l_linger = 30;
-  if (setsockopt(s, SOL_SOCKET, SO_LINGER, &linger, sizeof(linger)) == -1) {
-    perrout_TCP(s);
-  }
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
