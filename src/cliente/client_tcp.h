@@ -83,11 +83,13 @@ char *client_tcp(char *req, char *hostname) {
   int i, j, errcode;
   socklen_t addrlen;
 
+#ifdef DEBUG
   if (!check_crlf_format(req, strlen(req))) {
     fprintf(stderr, "BAD FORMAT IN\n");
   } else {
     fprintf(stderr, "GOOD FORMAT IN\n");
   }
+#endif
 
   const char *internal_error = "Internal error\r\n";
   char *internal_error_malloced = (char *)malloc(strlen(internal_error) + 1);

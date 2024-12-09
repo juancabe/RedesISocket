@@ -229,7 +229,7 @@ parse_client_request_return parse_client_request(char *in_buf, char **out_hostna
 
   if (check_barw(ptr)) {
 #ifdef DEBUG
-    printf("ERROR 1\n");
+    printf("[PARSE_CR] \\W detected\n");
 #endif
     ptr += 2;
     // After /W, it can be a space or a CRLF

@@ -142,12 +142,17 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     response_malloced = true;
     break;
   case HOSTNAME_REDIRECT:
-    if (username == NULL) // Username not provided by client
-    {
-      username = "\r\n";
-      username_malloced = false;
+    // Username should be malloced and ending with \r\n
+    if (username == NULL) {
+      username = (char *)malloc(3);
+      if (username == NULL) {
+        response = internal_error_malloced;
+        response_malloced = true;
+        break;
+      }
+      strcpy(username, "\r\n");
+      username_malloced = true;
     } else {
-      // Append CRLF to username if username exists, username'll be the new request
       username = (char *)realloc(username, strlen(username) + 3);
       if (username == NULL) {
         response = internal_error_malloced;
@@ -159,6 +164,15 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     if (hostname == NULL) {
       response = "Your request is invalid. Expected {[username][@hostname]\\r\\n}\r\n";
     } else {
+#ifdef DEBUG
+      if (move_hostnames(&username, &hostname)) {
+        fprintf(stderr, "Hostnames moved\n");
+      } else {
+        fprintf(stderr, "Hostnames not moved\n");
+      }
+#else
+      move_hostnames(&username, &hostname);
+#endif
 #ifdef DEBUG
       fprintf(stderr, "calling client_tcp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
