@@ -217,6 +217,11 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     if (sent == -1) {
       perrout_TCP(s);
     }
+#ifdef DEBUG
+    else {
+      fprintf(stderr, "Sent\t%d bytes of\t%ld\n", sent, response_len);
+    }
+#endif
     response_ptr += sent;
     response_len -= sent;
   }
