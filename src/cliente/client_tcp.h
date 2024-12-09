@@ -71,6 +71,9 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
     buffer = (char *)realloc(buffer, actual_len + step_len);
     if (buffer == NULL) {
       free(tempPtr);
+#ifdef DEBUG
+      fprintf(stderr, "Error reallocating buffer\n");
+#endif
       return NULL;
     }
   }
