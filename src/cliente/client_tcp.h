@@ -48,7 +48,6 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
   strcpy(connection_problem_malloced, connection_problem);
 
   // Receive until server closes connection or timeout
-  alarm(TIMEOUT);
   while ((received_len = recv(s, buffer + actual_len, step_len, 0)) && (actual_len < MAX_RESPONSE_SIZE)) {
     if (received_len < 0) {
       free(buffer);
@@ -70,7 +69,6 @@ char *TCP_send_close_send_and_wait_server_request(int s, char *request, int *res
       return NULL;
     }
   }
-  alarm(0);
 
   free(connection_problem_malloced);
   *response_size = actual_len;
