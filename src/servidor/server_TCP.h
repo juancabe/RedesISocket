@@ -222,7 +222,9 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (shutdown(s, SHUT_WR) == -1) {
     perrout_TCP(s);
   }
-
+#ifdef IFF_DEBUG
+  fprintf(stderr, "Shutdown sent\n");
+#endif
   // Now we must close the connection
   close(s);
 
