@@ -14,8 +14,11 @@ CLIENTE_DEPS = $(CPATH)cliente.c $(CPATH)client_tcp.h $(CPATH)client_udp.h $(CPA
 
 
 run: all
-	./servidor &
-	./cliente TCP root
+	chmod 700 lanzaServidor.sh
+	./lanzaServidor.sh
+
+clean:
+	rm *.txt *.log
 
 all: servidor cliente
 apple: servidor_apple cliente_apple
