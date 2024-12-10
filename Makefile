@@ -18,7 +18,7 @@ run: all
 	./lanzaServidor.sh
 
 clean:
-	rm *.txt *.log
+	rm *.txt &rm *.log &rm cliente &rm servidor & killall servidor
 
 all: servidor cliente
 apple: servidor_apple cliente_apple

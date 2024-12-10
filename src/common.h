@@ -23,7 +23,7 @@
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
 #define RETRIES 3
-#define TIMEOUT 20
+#define TIMEOUT 10
 // #define DEBUG
 
 typedef struct {
