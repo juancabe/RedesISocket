@@ -18,60 +18,6 @@
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
-#ifdef __APPLE__
-
-// Apple not implemented, return "NOT IMPLEMENTED\r\n"
-const char *RESPONSE = "NOT IMPLEMENTED\r\n";
-
-char *all_users_info() {
-  char *info = (char *)malloc(strlen(RESPONSE) + 1);
-  if (!info) {
-    return NULL;
-  }
-  strcpy(info, RESPONSE);
-  return info;
-}
-
-char *just_one_user_info(char *username) {
-  char *info = (char *)malloc(strlen(RESPONSE) + 1);
-  if (!info) {
-    return NULL;
-  }
-  strcpy(info, RESPONSE);
-  return info;
-}
-
-#elif defined(SEND_BIG_CHUNK)
-
-const int CHUNK_SIZE = 663886080; // 660 mb
-
-char *all_users_info() {
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
-  if (!info) {
-    return NULL;
-  }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  info[CHUNK_SIZE - 2] = '\n';
-  info[CHUNK_SIZE - 3] = '\r';
-  return info;
-}
-
-char *just_one_user_info(char *username) {
-
-  char *info = (char *)malloc(CHUNK_SIZE); // 900KB
-  if (!info) {
-    return NULL;
-  }
-  memset(info, 'A', CHUNK_SIZE - 1);
-  info[CHUNK_SIZE - 1] = '\0';
-  info[CHUNK_SIZE - 2] = '\n';
-  info[CHUNK_SIZE - 3] = '\r';
-  return info;
-}
-
-#else
-
 typedef struct {
   char *username;
   struct utmpx *ut;
@@ -174,6 +120,7 @@ static int UUTX_array_free(UUTX_array *array) {
 static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   char *lines = NULL;
   char *lines_ptr = NULL;
+  char *temp_ptr = lines;
   int written_count = 0;
 
   struct passwd *pwd = getpwnam(username);
@@ -181,7 +128,9 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
     char user_not_found[] = "User not found.";
     lines = (char *)malloc(strlen(user_not_found) + 1);
     if (!lines) {
-      // Handle allocation error
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     strcpy(lines, user_not_found);
@@ -202,16 +151,22 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   // First allocation
   lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
   if (!lines) {
-    // Handle allocation error
+#ifdef DEBUG
+    fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
     return NULL;
   }
   lines_ptr = lines + written_count;
   written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "Login: %s\t\t\tName: %s\r\n", pwd->pw_name, name);
   lines_ptr = lines + written_count;
 
+  temp_ptr = lines;
   lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
   if (!lines) {
-    // Handle allocation error
+#ifdef DEBUG
+    fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
+    free(temp_ptr);
     return NULL;
   }
   lines_ptr = lines + written_count;
@@ -255,7 +210,9 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
               strncpy(last_logout_host, wtmp_record.ut_host, UT_HOSTSIZE);
               last_logout_host[UT_HOSTSIZE] = '\0';
             } else {
-              // Handle allocation error
+#ifdef DEBUG
+              fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
               return NULL;
             }
             last_logout_line = (char *)malloc(UT_LINESIZE + 1);
@@ -263,7 +220,9 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
               strncpy(last_logout_line, wtmp_record.ut_line, UT_LINESIZE);
               last_logout_line[UT_LINESIZE] = '\0';
             } else {
-              // Handle allocation error
+#ifdef DEBUG
+              fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
               return NULL;
             }
           }
@@ -272,9 +231,14 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
       fclose(wtmp_file);
     }
 
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     lines_ptr = lines + written_count;
@@ -297,9 +261,14 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   } else {
     char login_time[64];
     strftime(login_time, sizeof(login_time), "%a %b %d %H:%M (%Z)", localtime((time_t *)&ut->ut_tv.tv_sec));
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     // Draw a line for each terminal active for the user
@@ -315,18 +284,28 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   snprintf(mail_path, sizeof(mail_path), "/var/mail/%s", pwd->pw_name);
   struct stat mail_stat;
   if (stat(mail_path, &mail_stat) == 0 && mail_stat.st_size > 0) {
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     lines_ptr = lines + written_count;
     written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "You have mail.\r\n");
     lines_ptr = lines + written_count;
   } else {
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     lines_ptr = lines + written_count;
@@ -337,18 +316,28 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   char plan_path[512];
   snprintf(plan_path, sizeof(plan_path), "%s/.plan", pwd->pw_dir);
   if (access(plan_path, F_OK) == 0) {
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     lines_ptr = lines + written_count;
     written_count += snprintf(lines_ptr, MAX_LINE_LENGTH, "You have Plan.\r\n");
     lines_ptr = lines + written_count;
   } else {
+    temp_ptr = lines;
     lines = (char *)realloc(lines, written_count + MAX_LINE_LENGTH + 1);
     if (!lines) {
       // Handle allocation error
+      free(temp_ptr);
+#ifdef DEBUG
+      fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
       return NULL;
     }
     lines_ptr = lines + written_count;
@@ -357,9 +346,14 @@ static char *user_info(char *username, UUTX_user_utmpxs *ut_in) {
   }
 
   // Add null terminator
+  temp_ptr = lines;
   lines = (char *)realloc(lines, written_count + 1);
   if (!lines) {
     // Handle allocation error
+    free(temp_ptr);
+#ifdef DEBUG
+    fprintf(stderr, "[compose_finger] Allocation error\n");
+#endif
     return NULL;
   }
   lines[written_count] = '\0';
@@ -545,7 +539,7 @@ char *just_one_user_info(char *username) {
         free(user_str);
       }
     } else {
-      // No se encontró usuario, proceder como antes
+      // No se encontró usuario, llamar a user_info para usuario desconectado (NULL)
       char *user_str = user_info(username, NULL);
       if (user_str) {
         size_t current_len = info ? strlen(info) : 0;
@@ -580,7 +574,5 @@ char *just_one_user_info(char *username) {
 
   return info;
 }
-
-#endif
 
 #endif

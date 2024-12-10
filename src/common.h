@@ -22,8 +22,8 @@
 #define TAM_BUFFER_IN_UDP 65535 /* maximum size of packets to be received */
 #define MAXHOST 128
 #define LOG_FILENAME "server_log.txt"
-#define RETRIES 3
-#define TIMEOUT 10
+#define RETRIES 2
+#define TIMEOUT 6
 // #define DEBUG
 
 typedef struct {
