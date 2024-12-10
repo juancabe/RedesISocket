@@ -98,7 +98,7 @@ client_return client_udp(char *request, char *hostname, int timeout) {
     ret.socket = -1;
     return ret;
   }
-  ret.eport = ntohs(myaddr_in.sin_port);
+
   addrlen = sizeof(struct sockaddr_in);
   if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
 #ifdef DEBUG
@@ -119,6 +119,7 @@ client_return client_udp(char *request, char *hostname, int timeout) {
     ret.socket = -1;
     return ret;
   }
+  ret.eport = ntohs(myaddr_in.sin_port);
 
 #ifdef DEBUG
   /* Print out a startup message for the user. */

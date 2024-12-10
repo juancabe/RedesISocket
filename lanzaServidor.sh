@@ -3,11 +3,11 @@
 ./servidor
 ./cliente TCP &
 ./cliente TCP David &
-./cliente TCP @nogal.usal.es &
-./cliente TCP zxcvb@nogal.usal.es &
-./cliente TCP p1777001@nogal.usal.es &
+./cliente TCP @localhost &
+./cliente TCP zxcvb@localhost &
+./cliente TCP p1777001@localhost &
 ./cliente UDP &
 ./cliente UDP david &
-./cliente UDP @nogal.usal.es &
-./cliente UDP zxcvb@nogal.usal.es &
-./cliente UDP p1777001@nogal.usal.es &
+./cliente UDP @localhost &
+./cliente UDP zxcvb@localhost &
+./cliente UDP p1777001@localhost &

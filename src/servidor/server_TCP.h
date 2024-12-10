@@ -62,7 +62,7 @@ static char *receive_one_message(char *hostname, int s) {
 
 void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   const char protocol[] = "TCP";
-  log_event("Comunicación establecida: ", &clientaddr_in, NULL, protocol);
+  log_event("Comunicación establecida", &clientaddr_in, NULL, protocol);
 
   char SERVER_NAME[] = "serverTCP";
   int reqcnt = 0;                /* keeps count of number of requests */
@@ -116,7 +116,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
-  log_event("Petición recibida: ", &clientaddr_in, buffer, protocol);
+  log_event("Petición recibida", &clientaddr_in, buffer, protocol);
   reqcnt++;
   if (buffer == NULL) {
     perrout_TCP(s);
@@ -216,7 +216,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (getsockopt(s, SOL_SOCKET, SO_SNDBUF, &send_buf_size, &optlen) < 0) {
     perrout_TCP(s);
   }
-  log_event("Enviando respuesta: ", &clientaddr_in, response, protocol);
+  log_event("Enviando respuesta", &clientaddr_in, response, protocol);
   char *response_ptr = response;
   size_t response_len = strlen(response_ptr);
   while (response_len > 0) {
@@ -266,7 +266,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (hostname != NULL)
     free(hostname);
 
-  log_event("Comunicación finalizada: ", &clientaddr_in, NULL, protocol);
+  log_event("Comunicación finalizada", &clientaddr_in, NULL, protocol);
 
   return;
 }

@@ -22,7 +22,7 @@ char *preprocess_UDP_request(int s, struct sockaddr_in *clientaddr_in, socklen_t
     free(buffer);
     return NULL;
   }
-  log_event("Comunicación establecida: ", clientaddr_in, NULL, protocol);
+  log_event("Comunicación establecida", clientaddr_in, NULL, protocol);
   buffer[cc] = '\0';
   return buffer;
 }
@@ -41,7 +41,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 
   struct addrinfo hints, *res;
 
-  log_event("Petición recibida: ", &clientaddr_in, NULL, protocol);
+  log_event("Petición recibida", &clientaddr_in, NULL, protocol);
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
@@ -176,7 +176,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 
   addrlen = sizeof(struct sockaddr_in);
   // Now we must send the response to the client
-  log_event("Enviando respuesta: ", &clientaddr_in, response, protocol);
+  log_event("Enviando respuesta", &clientaddr_in, response, protocol);
   if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response)) {
     perrout_UDP(s);
   }
@@ -192,7 +192,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
     free(buffer);
 
   close(s);
-  log_event("Comunicación finalizada: ", &clientaddr_in, NULL, protocol);
+  log_event("Comunicación finalizada", &clientaddr_in, NULL, protocol);
   // ALL Done
 }
 

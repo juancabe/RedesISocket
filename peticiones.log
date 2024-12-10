@@ -1,6 +1,88 @@
-Tue Dec 10 01:10:54 2024 - Comunicación establecida: : localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54472, 
-Tue Dec 10 01:10:54 2024 - Petición recibida: : localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54472, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54788, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54789, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54791, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54790, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 61383, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 55456, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 61383, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54792, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54788, David
 
-Tue Dec 10 01:10:54 2024 - Enviando respuesta: : localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54472, NOT IMPLEMENTED
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54790, 
 
-Tue Dec 10 01:10:54 2024 - Comunicación finalizada: : localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54472, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64468, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54789, @localhost
+
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54791, zxcvb@localhost
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 61383, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54788, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54790, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 59650, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54792, p1777001@localhost
+
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 61383, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 55456, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54788, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54790, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 51365, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64468, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 59650, 
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64468, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 53081, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 51365, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54793, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54794, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54795, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64113, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64468, 
+Tue Dec 10 01:44:42 2024 - Comunicación establecida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64015, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54793, 
+
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54794, zxcvb
+
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54795, p1777001
+
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 53081, 
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64113, 
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54793, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54794, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54795, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64113, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 53081, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Petición recibida: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64015, 
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54789, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54791, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54792, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 55456, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 59650, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54793, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54794, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54795, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64113, 
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64015, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 53081, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54789, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54791, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: TCP, Port: 54792, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 55456, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 59650, 
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 64015, 
+Tue Dec 10 01:44:42 2024 - Enviando respuesta: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 51365, NOT IMPLEMENTED
+
+Tue Dec 10 01:44:42 2024 - Comunicación finalizada: localhost, IP: 127.0.0.1, Protocol: UDP, Port: 51365, 
