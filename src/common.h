@@ -29,6 +29,7 @@
 typedef struct {
   char *response;
   int socket;
+  int eport;
 } client_return;
 
 bool check_crlf_format(char *buffer, int len) {

@@ -11,6 +11,7 @@
 // and then fork the child process to handle the request
 
 char *preprocess_UDP_request(int s, struct sockaddr_in *clientaddr_in, socklen_t *addrlen) {
+  const char protocol[] = "UDP";
   // The recv must be done in the parent process, this function will be called
   // in the parent process
   char *buffer = (char *)malloc(TAM_BUFFER_IN_UDP);
@@ -21,6 +22,7 @@ char *preprocess_UDP_request(int s, struct sockaddr_in *clientaddr_in, socklen_t
     free(buffer);
     return NULL;
   }
+  log_event("Comunicación establecida: ", clientaddr_in, NULL, protocol);
   buffer[cc] = '\0';
   return buffer;
 }
@@ -35,8 +37,11 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
   struct in_addr reqaddr; /* for requested host's address */
   struct hostent *hp;     /* pointer to host info for requested host */
   int nc, errcode;
+  const char protocol[] = "UDP";
 
   struct addrinfo hints, *res;
+
+  log_event("Petición recibida: ", &clientaddr_in, NULL, protocol);
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;
@@ -137,7 +142,11 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 #ifdef DEBUG
       fprintf(stderr, "calling client_udp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
-      response = client_udp(username, hostname, TIMEOUT / 2); // Username is the new request
+      client_return ret = client_udp(username, hostname, TIMEOUT / 2);
+      if (ret.socket > 0)
+        close(ret.socket);
+      response = ret.response; // Username is the new request
+
       if (response == NULL) {
         response = internal_error_malloced;
         response_malloced = false;
@@ -167,6 +176,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 
   addrlen = sizeof(struct sockaddr_in);
   // Now we must send the response to the client
+  log_event("Enviando respuesta: ", &clientaddr_in, response, protocol);
   if (sendto(s, response, strlen(response), 0, (struct sockaddr *)&clientaddr_in, addrlen) != strlen(response)) {
     perrout_UDP(s);
   }
@@ -182,6 +192,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
     free(buffer);
 
   close(s);
+  log_event("Comunicación finalizada: ", &clientaddr_in, NULL, protocol);
   // ALL Done
 }
 

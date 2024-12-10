@@ -112,6 +112,7 @@ client_return client_tcp(char *req, char *hostname) {
   int i, j, errcode;
   socklen_t addrlen;
   client_return ret;
+  ret.eport = 0;
 
 #ifdef DEBUG
   if (!check_crlf_format(req, strlen(req))) {
@@ -246,6 +247,7 @@ client_return client_tcp(char *req, char *hostname) {
     ret.socket = s;
     return ret;
   }
+  ret.eport = ntohs(myaddr_in.sin_port);
 
 /* Print out a startup message for the user. */
 #ifdef DEBUG

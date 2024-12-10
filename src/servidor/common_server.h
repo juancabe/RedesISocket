@@ -5,6 +5,30 @@
 
 extern int errno;
 
+#include <time.h>
+
+// Add these helper functions before serverUDP
+void log_event(const char *event_type, const struct sockaddr_in *client_addr, const char *additional_info, const char *protocol) {
+  FILE *log_file = fopen("peticiones.log", "a");
+  if (log_file == NULL) {
+    perror("Error opening log file");
+    return;
+  }
+
+  time_t now;
+  time(&now);
+  char *date = ctime(&now);
+  date[strlen(date) - 1] = '\0'; // Remove newline
+
+  char host[NI_MAXHOST];
+  char service[NI_MAXSERV];
+  getnameinfo((struct sockaddr *)client_addr, sizeof(*client_addr), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV);
+
+  fprintf(log_file, "%s - %s: %s, IP: %s, Protocol: %s, Port: %s, %s\n", date, event_type, host, inet_ntoa(client_addr->sin_addr), protocol, service, additional_info ? additional_info : "");
+
+  fclose(log_file);
+}
+
 /*
  *	This routine aborts the child process attending the client.
  */

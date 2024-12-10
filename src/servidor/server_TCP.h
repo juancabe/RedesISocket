@@ -61,6 +61,9 @@ static char *receive_one_message(char *hostname, int s) {
 }
 
 void serverTCP(int s, struct sockaddr_in clientaddr_in) {
+  const char protocol[] = "TCP";
+  log_event("Comunicación establecida: ", &clientaddr_in, NULL, protocol);
+
   char SERVER_NAME[] = "serverTCP";
   int reqcnt = 0;                /* keeps count of number of requests */
   char remote_hostname[MAXHOST]; /* remote host's name string */
@@ -113,6 +116,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 
   // First message should be one line
   char *buffer = receive_one_message(remote_hostname, s);
+  log_event("Petición recibida: ", &clientaddr_in, buffer, protocol);
   reqcnt++;
   if (buffer == NULL) {
     perrout_TCP(s);
@@ -184,7 +188,11 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
 #ifdef DEBUG
       fprintf(stderr, "calling client_tcp(%s, %s)\n", username ? username : "NULL", hostname ? hostname : "NULL");
 #endif
-      response = client_tcp(username, hostname); // Username is the new request
+      client_return ret = client_tcp(username, hostname);
+      if (ret.socket > 0)
+        close(ret.socket);
+
+      response = ret.response; // Username is the new request
       response_malloced = true;
     }
 
@@ -208,6 +216,7 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
   if (getsockopt(s, SOL_SOCKET, SO_SNDBUF, &send_buf_size, &optlen) < 0) {
     perrout_TCP(s);
   }
+  log_event("Enviando respuesta: ", &clientaddr_in, response, protocol);
   char *response_ptr = response;
   size_t response_len = strlen(response_ptr);
   while (response_len > 0) {
@@ -256,6 +265,8 @@ void serverTCP(int s, struct sockaddr_in clientaddr_in) {
     free(username);
   if (hostname != NULL)
     free(hostname);
+
+  log_event("Comunicación finalizada: ", &clientaddr_in, NULL, protocol);
 
   return;
 }

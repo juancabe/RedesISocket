@@ -1,6 +1,25 @@
 #include "client_tcp.h"
 #include "client_udp.h"
 
+#include <stdio.h>
+
+static int countDigits(int num) {
+  int count = 0;
+
+  if (num == 0) // Caso especial para el 0
+    return 1;
+
+  if (num < 0) // Considerar números negativos
+    num = -num;
+
+  while (num > 0) {
+    count++;
+    num /= 10;
+  }
+
+  return count;
+}
+
 int main(int argc, char **argv) {
   if (argc < 2 || argc > 3) {
     fprintf(stderr, "uso: %s {TCP|UDP} [request]\n", argv[0]);
@@ -23,17 +42,26 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Protocolo no soportado: %s\n", argv[1]);
     exit(1);
   }
+  char *filename;
+  if (response.eport == 0)
+    filename = "noPortAssigned.txt";
+  else {
+    filename = malloc(countDigits(response.eport) + 5);
+    sprintf(filename, "%d.txt", response.eport);
+  }
+  FILE *file = fopen(filename, "w");
+  if (file == NULL) {
+    fprintf(stderr, "Error al abrir el archivo de output\n");
+    exit(1);
+  }
 
   if (response.response == NULL) {
-    fprintf(stderr, "Error al recibir respuesta\n");
-    exit(1);
+    fprintf(file, "Error al recibir respuesta\n");
   } else {
-#ifdef SEND_BIG_CHUNK
-    printf("Response length: %ld\n", strlen(response));
-#else
-    printf("%s", response.response);
-#endif
+    fprintf(file, "%s\n", response.response);
   }
+
+  fclose(file);
 
   if (response.socket > 0) {
     close(response.socket);

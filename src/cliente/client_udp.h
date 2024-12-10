@@ -20,6 +20,7 @@ client_return client_udp(char *request, char *hostname, int timeout) {
   socklen_t addrlen;
   int n_retry;
   client_return ret;
+  ret.eport = 0;
 
   struct addrinfo hints, *res;
 
@@ -97,6 +98,7 @@ client_return client_udp(char *request, char *hostname, int timeout) {
     ret.socket = -1;
     return ret;
   }
+  ret.eport = ntohs(myaddr_in.sin_port);
   addrlen = sizeof(struct sockaddr_in);
   if (getsockname(s, (struct sockaddr *)&myaddr_in, &addrlen) == -1) {
 #ifdef DEBUG
