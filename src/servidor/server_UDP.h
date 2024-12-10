@@ -41,7 +41,7 @@ void serverUDP(char *buffer, int s, struct sockaddr_in clientaddr_in, socklen_t 
 
   struct addrinfo hints, *res;
 
-  log_event("Petición recibida", &clientaddr_in, NULL, protocol);
+  log_event("Petición recibida", &clientaddr_in, buffer, protocol);
 
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = AF_INET;

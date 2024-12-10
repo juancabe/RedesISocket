@@ -57,6 +57,9 @@ static char *receive_one_message(char *hostname, int s) {
     return NULL;
   }
 
+  // Add null terminator
+  buffer[actual_len] = '\0';
+
   return buffer;
 }
 

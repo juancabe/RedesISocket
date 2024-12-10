@@ -24,7 +24,7 @@ void log_event(const char *event_type, const struct sockaddr_in *client_addr, co
   char service[NI_MAXSERV];
   getnameinfo((struct sockaddr *)client_addr, sizeof(*client_addr), host, NI_MAXHOST, service, NI_MAXSERV, NI_NUMERICSERV);
 
-  fprintf(log_file, "%s - %s: %s, IP: %s, Protocol: %s, Port: %s, %s\n", date, event_type, host, inet_ntoa(client_addr->sin_addr), protocol, service, additional_info ? additional_info : "");
+  fprintf(log_file, "%s - %s: %s, IP: %s, Protocol: %s, Port: %s\n%s\n", date, event_type, host, inet_ntoa(client_addr->sin_addr), protocol, service, additional_info ? additional_info : "");
 
   fclose(log_file);
 }
