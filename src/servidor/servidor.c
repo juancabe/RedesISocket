@@ -1,3 +1,10 @@
+/*
+** Fichero: servidor.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #include "server_TCP.h"
 #include "server_UDP.h"
 

@@ -1,3 +1,10 @@
+/*
+** Fichero: parse_client_request.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #ifndef PARSE_CLIENT_REQUEST_H
 #define PARSE_CLIENT_REQUEST_H
 

@@ -1,3 +1,10 @@
+/*
+** Fichero: client_tcp.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #ifndef CLIENT_TCP_H
 #define CLIENT_TCP_H
 

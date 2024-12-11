@@ -1,3 +1,10 @@
+/*
+** Fichero: compose_finger.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #include "../src/servidor/compose_finger.h"
 #include "../src/common.h"
 

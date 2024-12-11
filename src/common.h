@@ -1,3 +1,10 @@
+/*
+** Fichero: common.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #ifndef COMMON_H
 #define COMMON_H
 

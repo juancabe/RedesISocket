@@ -1,3 +1,10 @@
+/*
+** Fichero: server_TCP.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI DNIHUGO
+*/
+
 #ifndef SERVER_TCP_H
 #define SERVER_TCP_H
 
