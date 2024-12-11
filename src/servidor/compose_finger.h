@@ -22,7 +22,7 @@
 #include <utmp.h>
 #include <utmpx.h>
 
-#define SEND_BIG_CHUNK
+// #define SEND_BIG_CHUNK
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
 
