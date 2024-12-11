@@ -15,8 +15,40 @@
 #include <utmp.h>
 #include <utmpx.h>
 
+#define SEND_BIG_CHUNK
 #define MAX_LINE_LENGTH 516
 #define UT_USER_SIZE (sizeof(((struct utmpx *)0)->ut_user))
+
+#ifdef SEND_BIG_CHUNK
+
+const int CHUNK_SIZE = 663886080; // 660 mb
+
+char *all_users_info() {
+  char *info = (char *)malloc(CHUNK_SIZE); // 660 mb
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  info[CHUNK_SIZE - 2] = '\n';
+  info[CHUNK_SIZE - 3] = '\r';
+  return info;
+}
+
+char *just_one_user_info(char *username) {
+
+  char *info = (char *)malloc(CHUNK_SIZE); // 660 mb
+  if (!info) {
+    return NULL;
+  }
+  memset(info, 'A', CHUNK_SIZE - 1);
+  info[CHUNK_SIZE - 1] = '\0';
+  info[CHUNK_SIZE - 2] = '\n';
+  info[CHUNK_SIZE - 3] = '\r';
+  return info;
+}
+
+#else
 
 typedef struct {
   char *username;
@@ -574,5 +606,7 @@ char *just_one_user_info(char *username) {
 
   return info;
 }
+
+#endif
 
 #endif
