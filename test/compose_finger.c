@@ -1,5 +1,12 @@
-#include "../src/common.h"
+/*
+** Fichero: compose_finger.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #include "../src/servidor/compose_finger.h"
+#include "../src/common.h"
 
 int main() {
 

@@ -1,3 +1,10 @@
+/*
+** Fichero: common_server.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #ifndef COMMON_SERVER_H
 #define COMMON_SERVER_H
 
@@ -7,7 +14,6 @@ extern int errno;
 
 #include <time.h>
 
-// Add these helper functions before serverUDP
 void log_event(const char *event_type, const struct sockaddr_in *client_addr, const char *additional_info, const char *protocol) {
   FILE *log_file = fopen("peticiones.log", "a");
   if (log_file == NULL) {

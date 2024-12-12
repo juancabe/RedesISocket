@@ -1,3 +1,10 @@
+/*
+** Fichero: servidor.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #include "server_TCP.h"
 #include "server_UDP.h"
 
@@ -137,18 +144,20 @@ int main(int argc, char *argv[]) {
         } else if (FD_ISSET(s_UDP, &readmask)) {
           socklen_t addrlen;
           struct sockaddr_in clientaddr_in;
+          // Necesitamos procesar en el padre la petición para no volver a generar un hijo para la misma petición
           char *buffer = preprocess_UDP_request(s_UDP, &clientaddr_in, &addrlen);
-          switch (fork()) {
-          case -1:
-            printf("Error al crear el proceso hijo\n");
-            break;
-          case 0:
-            close(ls_TCP);
-            serverUDP(buffer, s_UDP, clientaddr_in, addrlen);
-            exit(0);
-          default:
-            free(buffer);
-          }
+          if (buffer != NULL && check_crlf_format(buffer, strlen(buffer)))
+            switch (fork()) {
+            case -1:
+              printf("Error al crear el proceso hijo\n");
+              break;
+            case 0: // Proceso hijo
+              close(ls_TCP);
+              serverUDP(buffer, s_UDP, clientaddr_in, addrlen);
+              exit(0);
+            default: // El padre limpia su heap
+              free(buffer);
+            }
         }
       }
     }

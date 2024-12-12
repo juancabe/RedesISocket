@@ -1,3 +1,10 @@
+/*
+** Fichero: common.h
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -20,10 +27,10 @@
 #define ADDRNOTFOUND 0xffffffff /* return address for unfound host */
 #define TAM_BUFFER_OUT_UDP 5624 /* maximum size of packets to be sent */
 #define TAM_BUFFER_IN_UDP 65535 /* maximum size of packets to be received */
-#define MAXHOST 128
+#define MAXHOST 256
 #define LOG_FILENAME "server_log.txt"
-#define RETRIES 3
-#define TIMEOUT 10
+#define RETRIES 2
+#define TIMEOUT 6
 // #define DEBUG
 
 typedef struct {

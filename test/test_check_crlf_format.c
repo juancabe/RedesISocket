@@ -1,37 +1,26 @@
+/*
+** Fichero: test_check_crlf_format.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #include "../src/common.h"
 #include <stdio.h>
-#include <stdlib.h>
 
-int test_crlf_format(int num, char *buffer, bool expected)
-{
+int test_crlf_format(int num, char *buffer, bool expected) {
   bool result = check_crlf_format(buffer, strlen(buffer));
-  if (result != expected)
-  {
+  if (result != expected) {
     fprintf(stderr, "%d Test FAILED  ⚠️   for buffer: %s\n\n\n", num, buffer);
     return 1;
-  }
-  else
-  {
+  } else {
     fprintf(stderr, "%d Test passed for buffer: %s\n\n\n", num, buffer);
   }
   return 0;
 }
 
-int main()
-{
+int main() {
   // test check_crlf_format("hola\n", 5);
-  /*
-  test_crlf_format("hola\n", false);
-  test_crlf_format("hola\r\n", true);
-  test_crlf_format("hola\r\n\r\n", true);
-  test_crlf_format("\r\n", true);
-  test_crlf_format("\n", false);
-  test_crlf_format("hola", false);
-  test_crlf_format("hola\r", false);
-  test_crlf_format("hola\n\r", false);
-  test_crlf_format("hola\n\r\n", false);
-  test_crlf_format("hola\r\n\n", false);
-  */
   test_crlf_format(1, "hola\n", false);
   test_crlf_format(2, "hola\r\n", true);
   test_crlf_format(3, "hola\r\n\r\n", true);

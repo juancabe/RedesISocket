@@ -1,3 +1,10 @@
+/*
+** Fichero: cliente.c
+** Autores:
+** Juan Calzada Bernal DNI 70919688Q
+** Hugo Chalard Collado DNI 70964149H
+*/
+
 #include "client_tcp.h"
 #include "client_udp.h"
 
