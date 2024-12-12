@@ -2,7 +2,7 @@
 ** Fichero: common_server.h
 ** Autores:
 ** Juan Calzada Bernal DNI 70919688Q
-** Hugo Chalard Collado DNI DNIHUGO
+** Hugo Chalard Collado DNI 70964149H
 */
 
 #ifndef COMMON_SERVER_H
