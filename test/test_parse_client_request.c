@@ -2,7 +2,7 @@
 ** Fichero: test_parse_client_request.c
 ** Autores:
 ** Juan Calzada Bernal DNI 70919688Q
-** Hugo Chalard Collado DNI DNIHUGO
+** Hugo Chalard Collado DNI 70964149H
 */
 
 #include "../src/servidor/parse_client_request.h"
